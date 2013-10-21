@@ -1,8 +1,9 @@
 ﻿Node = function (id, context) {
 	this.id = id;
-	this.die = true;
 	this.ctx = context;
+	this.die = true;
 	this.needToPropose = false;
+	this.needToRecover = false;
 	this.recvBuffer = [];
 }
 
@@ -11,6 +12,7 @@ Node.prototype.getId = function () {
 }
 
 Node.prototype.send = function (id, msg) {
+	console.log("Message {" + msg + "} sent to node[" + id.toString() + "] at time(" + this.getTime().toString() + ")");
 	this.ctx.fromMessage.push(new Message(this.id, id, this.getTime(), msg));
 }
 
@@ -18,12 +20,23 @@ Node.prototype.recv = function () {
 	if (this.recvBuffer.length) {
 		return (this.recvBuffer.splice(0,1))[0];
 	} else {
-		return NULL;
+		return null;
 	}
 }
 
 Node.prototype.tick = function () {
-	this.needToPropose = false;
+	if (this.needToRecover) {
+		console.log("node[" + this.id + "] is restarted");
+		this.needToRecover = false;
+		if (this.id == 0) {
+			this.send(1, "0");
+		}
+	}
+	msg = this.recv();
+	if (msg) {
+		console.log("Message{" + msg.data.toString() + "} recved from node[" + msg.from.toString() + "] at time(" + msg.recvTime.toString() + ")");
+		this.send(msg.from, (parseInt(msg.data) + 1).toString());
+	}
 }
 
 Node.prototype.getStorage = function () {
@@ -37,10 +50,11 @@ Node.prototype.getTime = function () {
 }
 
 Node.prototype.isOnRecovery = function () {
+	return this.needToRecover;
 }
 
 Node.prototype.isOnRequest = function () {
-	this.needToPropose = true;
+	return this.needToPropose;
 }
 
 Node.prototype.dump = function() {
@@ -51,19 +65,23 @@ Framework = function() {
 	this.nodeId = 0;
 	this.nodes = [];
 	this.time = 0;
+
+	this.fromMessage = [];
+	this.toMessage = new MinHeap(null, function(a, b){return a.recvTime < b.recvTime});
 }
 
 Framework.prototype.initialize = function() {
 	this.createNode({});
-	for (i = 0; i < this.nodeId; i++) {
-		this.nodes[i].dump();
-	}
+	this.createNode({});
 	this.graph = [];
+	console.log("node count", this.nodeId);
 	for (i = 0; i < this.nodeId; i++) {
 		this.graph.push([]);
 		for (j = 0; j < this.nodeId; j++) {
 			if (i != j) {
 				this.graph[i].push(new Connection(i, j, 10));
+			} else {
+				this.graph[i].push(null);
 			}
 		}
 	}
@@ -76,32 +94,29 @@ Framework.prototype.createNode = function(conf) {
 
 Framework.prototype.run = function() {
 	i = 0;
-	while (i < 1000) {
+	while (this.time < 100) {
 		//move FromMessage to ToMessage
-		while (fromMessage.length) {
-			msg = fromMessage.pop();
-			msg.recvTime = graph[msg.from][msg.to].time + msg.fromTime;
-			toMessage.push(msg);
+		while (this.fromMessage.length) {
+			msg = this.fromMessage.pop();
+			msg.recvTime = this.graph[msg.from][msg.to].time + msg.sendTime;
+			this.toMessage.push(msg);
 		}
 		// assert current time always <= recvTime of any message
-		while (toMessage.size() && 
-			toMessage.heap[0].recvTime == time) {
-			msg = toMessage.pop();
+		while (this.toMessage.size() && 
+			this.toMessage.heap[0].recvTime == this.time) {
+			msg = this.toMessage.pop();
 			this.nodes[msg.to].recvBuffer.push(msg);
 		}
 
 		for (j = 0; j < this.nodeId; j++) {
 			if (this.nodes[j].die) {
-				this.nodes[j].onRecovery();
+				this.nodes[j].needToRecover = true;
 				this.nodes[j].die = false;
-			} else {
-				this.nodes[j].tick();
 			}
+			this.nodes[j].tick();
 		}
 		++this.time;
 	}
-	fromMessage = [];
-	toMessage = new MinHeap();
 }
 
 Framework.prototype.getNodeCount = function() {
@@ -115,7 +130,7 @@ Connection = function(from, to, time) {
 }
 
 Message = function(from, to, sendTime, data) {
-	this.sendTime = sendTime
+	this.sendTime = sendTime;
 	this.recvTime = null; //need to be set by framework
 	this.from = from;
 	this.to = to;
