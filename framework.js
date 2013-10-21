@@ -51,13 +51,21 @@ Framework = function() {
 	this.nodeId = 0;
 	this.nodes = [];
 	this.time = 0;
-	
 }
 
 Framework.prototype.initialize = function() {
 	this.createNode({});
 	for (i = 0; i < this.nodeId; i++) {
 		this.nodes[i].dump();
+	}
+	this.graph = [];
+	for (i = 0; i < this.nodeId; i++) {
+		this.graph.push([]);
+		for (j = 0; j < this.nodeId; j++) {
+			if (i != j) {
+				this.graph[i].push(new Connection(i, j, 10));
+			}
+		}
 	}
 }
 
@@ -69,6 +77,19 @@ Framework.prototype.createNode = function(conf) {
 Framework.prototype.run = function() {
 	i = 0;
 	while (i < 1000) {
+		//move FromMessage to ToMessage
+		while (fromMessage.length) {
+			msg = fromMessage.pop();
+			msg.recvTime = graph[msg.from][msg.to].time + msg.fromTime;
+			toMessage.push(msg);
+		}
+		// assert current time always <= recvTime of any message
+		while (toMessage.size() && 
+			toMessage.heap[0].recvTime == time) {
+			msg = toMessage.pop();
+			this.nodes[msg.to].recvBuffer.push(msg);
+		}
+
 		for (j = 0; j < this.nodeId; j++) {
 			if (this.nodes[j].die) {
 				this.nodes[j].onRecovery();
@@ -79,7 +100,7 @@ Framework.prototype.run = function() {
 		}
 		++this.time;
 	}
-	fromMessage = new MinHeap();
+	fromMessage = [];
 	toMessage = new MinHeap();
 }
 
