@@ -18,3 +18,12 @@ Node.prototype.getStorage = function () {
 
 Node.prototype.setStorage = function (data) {
 }
+
+Node.prototype.getTime = function () {
+}
+
+Node.prototype.isOnRecovery = function () {
+}
+
+Node.prototype.isOnRequest = function () {
+}

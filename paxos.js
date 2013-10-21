@@ -2,4 +2,5 @@
 }
 
 Paxos.prototype.onTick = function () {
+
 }
