@@ -3,23 +3,19 @@
 Paxos = function (node) {
     this._node = node;
 
-    this._proposalNumber = 1;
+    this._proposalNumber = this._firstUniqueNumber();
     this._isProposer = false;
     this._receivedPromise = 0;
     this._promisedNodes = new Array();
-    this._highestPromiseNumber = -1;
+    this._highestPromiseNumber = this._firstUniqueNumber();
     this._highestPromiseValue = null;
     this._proposingValue = null;
 
-    this._prepareNumber = -1;
-    this._highestAcceptedNumber = -1;
+    this._prepareNumber = this._firstUniqueNumber();
+    this._highestAcceptedNumber = this._firstUniqueNumber();
     this._acceptedValue = null;
     
     return this;
-}
-
-Paxos.prototype._log = function (msg) {
-    console.log("[Paxos:" + this._node.getId().toString() +  "] " + msg);
 }
 
 Paxos.prototype.onTick = function () {
@@ -43,6 +39,18 @@ Paxos.prototype.onTick = function () {
     }
 }
 
+Paxos.prototype._firstUniqueNumber = function () {
+    return -N + this._node.getId();
+}
+
+Paxos.prototype._nextUniqueNumber = function (current) {
+    return current + N;
+}
+
+Paxos.prototype._log = function (msg) {
+    console.log("[Paxos:" + this._node.getId().toString() +  "] " + msg);
+}
+
 Paxos.prototype._onRecovery = function () {
     this._log("on recovery");
 
@@ -53,6 +61,7 @@ Paxos.prototype._onRequest = function () {
     this._log("on request");
 
     this._isProposer = true;
+    this._proposalNumber = this._nextUniqueNumber(this._proposalNumber);
     for (var i = 0; i < N; ++i) {
         var msg = new PaxosMessage(this._node.getId(), "prepare", this._proposalNumber);
         this._node.send(i, msg);
