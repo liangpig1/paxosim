@@ -89,8 +89,11 @@ Framework = function() {
     this.time = 0;
 
     this.fromMessage = [];
-    this.toMessage = new MinHeap(
-        null, function (a, b) { return a.recvTime < b.recvTime });
+    this.toMessage = new MinHeap(null,
+        function (a, b) {
+            return a.recvTime < b.recvTime ? -1 : (
+                a.recvTime == b.recvTime ? 0 : 1);
+        });
 }
 
 Framework.prototype.initialize = function () {
@@ -113,12 +116,12 @@ Framework.prototype.createNode = function(conf) {
     this.nodes.push(node);
 }
 
-Framework.prototype.sendMessage = function (from, to, msg) {
+Framework.prototype.sendMessage = function (from, to, data) {
     var conn = this.graph[from][to];
     var recvTime = this.time + conn.minTime +
         Math.round(Math.random() * (conn.maxTime - conn.minTime));
 
-    var msg = new Message(from, to, this.time, recvTime, msg);
+    var msg = new Message(from, to, this.time, recvTime, data);
     this.toMessage.push(msg);
 }
 
@@ -126,14 +129,9 @@ Framework.prototype.run = function() {
     i = 0;
     while (this.time < 500) {
         // assert current time always <= recvTime of any message
-        if (this.toMessage.size() &&
-            this.toMessage.heap[0].recvTime < this.time) {
-            alert("SB!");
-        }
-
         while (this.toMessage.size() && 
-            this.toMessage.heap[0].recvTime == this.time) {
-            msg = this.toMessage.pop();
+            this.toMessage.getMin().recvTime == this.time) {
+            var msg = this.toMessage.pop();
             this.nodes[msg.to].deliverMessage(msg);
         }
 
