@@ -115,7 +115,7 @@ Framework.prototype.createNode = function(conf) {
 
 Framework.prototype.run = function() {
 	i = 0;
-	while (this.time < 100) {
+	while (this.time < 500) {
 		//move FromMessage to ToMessage
 		while (this.fromMessage.length) {
 			msg = this.fromMessage.pop();

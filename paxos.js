@@ -4,7 +4,9 @@ Paxos = function (node) {
     this._node = node;
 
     this._proposalNumber = this._firstUniqueNumber();
+    this.proposalTimeout = 50;
     this._isProposer = false;
+    this._proposeTime = null;
     this._receivedPromise = 0;
     this._promisedNodes = new Array();
     this._highestPromiseNumber = this._firstUniqueNumber();
@@ -37,6 +39,12 @@ Paxos.prototype.onTick = function () {
             this._onAccept(msg);
         }
     }
+
+    // proposal timeout
+    if (this._isProposer &&
+        this._node.getTime() > this._proposeTime + this.proposalTimeout) {
+        this._onRequest();
+    }
 }
 
 Paxos.prototype._firstUniqueNumber = function () {
@@ -61,6 +69,7 @@ Paxos.prototype._onRequest = function () {
     this._log("on request");
 
     this._isProposer = true;
+    this._proposeTime = this._node.getTime();
     this._proposalNumber = this._nextUniqueNumber(this._proposalNumber);
     for (var i = 0; i < N; ++i) {
         var msg = new PaxosMessage(this._node.getId(), "prepare", this._proposalNumber);
@@ -97,10 +106,10 @@ Paxos.prototype._onPromise = function (msg) {
         }
 
         ++this._receivedPromise;
-        if (this._receivedPromise >= Math.ceil(N / 2)) {
+        if (this._receivedPromise >= Math.ceil((N + 1) / 2)) {
             if (this._highestPromiseValue) {
                 this._proposingValue = this._highestPromiseValue;
-            } else {
+            } else if (!this._proposingValue) {
                 this._proposingValue = Math.round(Math.random() * 100);
             }
 
@@ -111,6 +120,7 @@ Paxos.prototype._onPromise = function (msg) {
             }
 
             this._isProposer = false;
+            this._proposeTime = null;
             this._promisedNodes = new Array();
             this._highestPromiseNumber = -1;
             this._highestPromiseValue = null;
@@ -126,6 +136,8 @@ Paxos.prototype._onAccept = function (msg) {
         this._acceptedValue = msg.detail[1];
         this._highestAcceptedNumber = this._acceptedValue;
         this._log("accepted value " + this._acceptedValue.toString());
+    } else {
+        this._log("denied value " + msg.detail[1]);
     }
 }
 
