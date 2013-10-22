@@ -11,11 +11,12 @@
 	<body>
         <h1>Paxos Simulator</h1>
         <script>
-            N = 2;
+            N = 3;
 	        console.log("paxos simulated simple");
 	        context = new Framework();
 	        context.initialize();
 	        context.nodes[0].needToPropose = true;
+	        //context.nodes[1].needToPropose = true;
 	        context.run();
         </script>
 	</body>

@@ -18,7 +18,7 @@ Node.prototype.send = function (id, msg) {
 
 Node.prototype.recv = function () {
 	if (this.recvBuffer.length) {
-		return (this.recvBuffer.splice(0,1))[0];
+		return (this.recvBuffer.splice(0,1))[0]/* Yuetao modified */.data;
 	} else {
 		return null;
 	}
@@ -27,9 +27,9 @@ Node.prototype.recv = function () {
 Node.prototype.tick = function () {
 	if (this.needToRecover) {
 		console.log("node[" + this.id + "] is restarted");
-		this.needToRecover = false;
-
+		
 	    // Yuetao's modification: begin
+		// this.needToRecover = false;
 		this.paxos = new Paxos(this);
 		/*if (this.id == 0) {
 		    this.send(1, "0");
@@ -39,6 +39,8 @@ Node.prototype.tick = function () {
 
     // Yuetao's modification: begin
 	this.paxos.onTick();
+	this.needToRecover = false;
+	this.needToPropose = false;
 	/*msg = this.recv();
 	if (msg) {
 		console.log("Message{" + msg.data.toString() + "} recved from node[" + msg.from.toString() + "] at time(" + msg.recvTime.toString() + ")");
@@ -93,11 +95,15 @@ Framework.prototype.initialize = function () {
 	for (i = 0; i < this.nodeId; i++) {
 		this.graph.push([]);
 		for (j = 0; j < this.nodeId; j++) {
-			if (i != j) {
+		    // Yuetao's modification: begin
+		    this.graph[i].push(new Connection(i, j, 10));
+
+			/*if (i != j) {
 				this.graph[i].push(new Connection(i, j, 10));
 			} else {
 				this.graph[i].push(null);
-			}
+			}*/
+            // Yuetao's modification: end
 		}
 	}
 }

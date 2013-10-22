@@ -54,7 +54,7 @@ Paxos.prototype._onRequest = function () {
 
     this._isProposer = true;
     for (var i = 0; i < N; ++i) {
-        var msg = new PaxosMessage(this._node.getId(), "prepare", this._number);
+        var msg = new PaxosMessage(this._node.getId(), "prepare", this._proposalNumber);
         this._node.send(i, msg);
     }
 }
@@ -63,9 +63,9 @@ Paxos.prototype._onPrepare = function (msg) {
     this._log(msg.toString());
 
     if (msg.detail >= this._prepareNumber) {
-        var msg = new PaxosMessage(this._node.getId(), "promise",
+        var newMsg = new PaxosMessage(this._node.getId(), "promise",
             [msg.detail, this._highestAcceptedNumber, this._acceptedValue]);
-        this._node.send(msg.from, msg);
+        this._node.send(msg.from, newMsg);
         this._prepareNumber = msg.detail;
     } else {
         // TODO: optimize performance
@@ -95,8 +95,11 @@ Paxos.prototype._onPromise = function (msg) {
                 this._proposingValue = Math.round(Math.random() * 100);
             }
 
-            var msg = new PaxosMessage(this._node.getId(), "accept",
+            var newMsg = new PaxosMessage(this._node.getId(), "accept",
                 [this._proposalNumber, this._proposingValue]);
+            for (var i = 0; i < N; ++i) {
+                this._node.send(i, newMsg);
+            }
 
             this._isProposer = false;
             this._promisedNodes = new Array();
@@ -113,6 +116,7 @@ Paxos.prototype._onAccept = function (msg) {
     if (msg.detail[0] >= this._prepareNumber) {
         this._acceptedValue = msg.detail[1];
         this._highestAcceptedNumber = this._acceptedValue;
+        this._log("accepted value " + this._acceptedValue.toString());
     }
 }
 
