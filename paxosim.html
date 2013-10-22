@@ -1,17 +1,20 @@
+<!DOCTYPE HTML>
+
 <html>
 	<head>
 		<title>Paxos Simulator</title>
 		<script type="text/javascript" src="./minheap.js"></script>
 		<script type="text/javascript" src="./framework.js"></script>
+        <script type="text/javascript" src="paxos.js"></script>
 	</head>
-	<body>
-	<h1>Paxos Simulator</h1>
-<script>
-	console.log("paxos simulated simple");
-	context = new Framework();
-	context.initialize();
-	context.run();
 
-</script>
+	<body>
+        <h1>Paxos Simulator</h1>
+        <script>
+	        console.log("paxos simulated simple");
+	        context = new Framework();
+	        context.initialize();
+	        context.run();
+        </script>
 	</body>
 </html>
