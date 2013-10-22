@@ -7,7 +7,7 @@
     this._recvBuffer = [];
     this._storage = null;
 
-    this.failRate = 0;
+    this.failRate = 0.4;
     this.averageFailTime = 10;
     this._recoverTime = 0;
 }
@@ -84,7 +84,7 @@ Node.prototype.isOnRequest = function () {
     return this._needToPropose;
 }
 
-Framework = function() {
+Framework = function () {
     this.nodes = [];
     this.time = 0;
 
@@ -111,7 +111,7 @@ Framework.prototype.initialize = function () {
     }
 }
 
-Framework.prototype.createNode = function(conf) {
+Framework.prototype.createNode = function (conf) {
     node = new Node(this.nodes.length, this);
     this.nodes.push(node);
 }
@@ -132,7 +132,7 @@ Framework.prototype.sendMessage = function (from, to, data) {
     this.toMessage.push(msg);
 }
 
-Framework.prototype.run = function() {
+Framework.prototype.run = function () {
     i = 0;
     while (this.time < 500) {
         // assert current time always <= recvTime of any message
@@ -149,7 +149,7 @@ Framework.prototype.run = function() {
     }
 }
 
-Connection = function(from, to, time) {
+Connection = function (from, to, time) {
     this.from = from;
     this.to = to;
     this.dupRate = 0.2;
@@ -158,7 +158,7 @@ Connection = function(from, to, time) {
     this.maxTime = 15;
 }
 
-Message = function(from, to, sendTime, recvTime, data) {
+Message = function (from, to, sendTime, recvTime, data) {
     this.sendTime = sendTime;
     this.recvTime = recvTime;
     this.from = from;

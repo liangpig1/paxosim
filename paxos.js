@@ -63,7 +63,15 @@ Paxos.prototype._log = function (msg) {
 Paxos.prototype._onRecovery = function () {
     this._log("on recovery");
 
-    // TODO
+    data = this._node.getStorage();
+    if (data) {
+        this._proposalNumber = data.savedProposalNumber;
+        this._prepareNumber = data.savedPrepareNumber;
+        this._highestAcceptedNumber = data.savedHighestAcceptedNumber;
+        this._acceptedValue = data.savedAcceptedValue;
+        this._proposeTime = data.savedProposeTime;
+        this._isProposer = data.savedIsProposer;
+    }
 }
 
 Paxos.prototype._onRequest = function () {
@@ -72,6 +80,7 @@ Paxos.prototype._onRequest = function () {
     this._isProposer = true;
     this._proposeTime = this._node.getTime();
     this._proposalNumber = this._nextUniqueNumber(this._proposalNumber);
+    this._save();
     for (var i = 0; i < N; ++i) {
         var msg = new PaxosMessage(this._node.getId(), "prepare", this._proposalNumber);
         this._node.send(i, msg);
@@ -86,6 +95,7 @@ Paxos.prototype._onPrepare = function (msg) {
             [msg.detail, this._highestAcceptedNumber, this._acceptedValue]);
         this._node.send(msg.from, newMsg);
         this._prepareNumber = msg.detail;
+        this._save();
     } else {
         // TODO: optimize performance
     }
@@ -107,12 +117,14 @@ Paxos.prototype._onPromise = function (msg) {
         }
 
         ++this._receivedPromise;
+        this._save();
         if (this._receivedPromise >= Math.ceil((N + 1) / 2)) {
             if (this._highestPromiseValue) {
                 this._proposingValue = this._highestPromiseValue;
             } else if (!this._proposingValue) {
                 this._proposingValue = Math.round(Math.random() * 100);
             }
+            this._save();
 
             var newMsg = new PaxosMessage(this._node.getId(), "accept",
                 [this._proposalNumber, this._proposingValue]);
@@ -126,6 +138,7 @@ Paxos.prototype._onPromise = function (msg) {
             this._highestPromiseNumber = -1;
             this._highestPromiseValue = null;
             this._receivedPromise = 0;
+            this._save();
         }
     }
 }
@@ -140,10 +153,23 @@ Paxos.prototype._onAccept = function (msg) {
     } else {
         this._log("denied value " + msg.detail[1]);
     }
+
+    this._save();
 }
 
-PaxosMessage = function (from, type, detail)
-{
+Paxos.prototype._save = function () {
+    var data = {
+        savedProposalNumber : this._proposalNumber,
+        savedPrepareNumber: this._prepareNumber,
+        savedHighestAcceptedNumber: this._highestAcceptedNumber,
+        savedAcceptedValue: this._acceptedValue,
+        savedProposeTime: this._proposeTime,
+        savedIsProposer: this._isProposer,
+    };
+    this._node.setStorage(data);
+}
+
+PaxosMessage = function (from, type, detail) {
     this.from = from;
     this.type = type;
     this.detail = detail;
