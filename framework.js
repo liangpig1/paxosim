@@ -118,6 +118,13 @@ Framework.prototype.createNode = function(conf) {
 
 Framework.prototype.sendMessage = function (from, to, data) {
     var conn = this.graph[from][to];
+    if (Math.random() < conn.dupRate) {
+        this.sendMessage(from, to, data);
+    }
+    if (Math.random() < conn.lossRate) {
+        return;
+    }
+
     var recvTime = this.time + conn.minTime +
         Math.round(Math.random() * (conn.maxTime - conn.minTime));
 
@@ -145,8 +152,8 @@ Framework.prototype.run = function() {
 Connection = function(from, to, time) {
     this.from = from;
     this.to = to;
-    this.dupRate = 0;
-    this.lossRate = 0;
+    this.dupRate = 0.2;
+    this.lossRate = 0.2;
     this.minTime = 5;
     this.maxTime = 15;
 }
