@@ -1,159 +1,162 @@
-﻿Node = function (id, context) {
-	this.id = id;
-	this.ctx = context;
-	this.die = true;
-	this.needToPropose = false;
-	this.needToRecover = true; /* Yuetao modified */
-	this.recvBuffer = [];
+﻿Node = function (id, framework) {
+    this._id = id;
+    this._framework = framework;
+    this._dead = true;
+    this._needToPropose = false;
+    this._needToRecover = true;
+    this._recvBuffer = [];
+    this._storage = null;
+
+    this.failRate = 0;
+    this.averageFailTime = 10;
+    this._recoverTime = 0;
 }
 
 Node.prototype.getId = function () {
-	return this.id;
+    return this._id;
+}
+
+Node.prototype._log = function (msg) {
+    console.log("[Time:" + this.getTime().toString()
+        + " Node:" + this._id.toString() + "] " + msg);
 }
 
 Node.prototype.send = function (id, msg) {
-	console.log("Message {" + msg + "} sent to node[" + id.toString() + "] at time(" + this.getTime().toString() + ")");
-	this.ctx.fromMessage.push(new Message(this.id, id, this.getTime(), msg));
+    this._log("send " + msg + " to node:" + id.toString());
+    this._framework.sendMessage(this._id, id, msg);
 }
 
 Node.prototype.recv = function () {
-	if (this.recvBuffer.length) {
-		return (this.recvBuffer.splice(0,1))[0]/* Yuetao modified */.data;
-	} else {
-		return null;
-	}
+    if (this._recvBuffer.length) {
+        return (this._recvBuffer.splice(0, 1))[0].data;
+    } else {
+        return null;
+    }
+}
+
+Node.prototype.deliverMessage = function (msg) {
+    if (!this._dead) {
+        this._recvBuffer.push(msg);
+    }
 }
 
 Node.prototype.tick = function () {
-	if (this.needToRecover) {
-		console.log("node[" + this.id + "] is restarted");
-		
-	    // Yuetao's modification: begin
-		// this.needToRecover = false;
-		this.paxos = new Paxos(this);
-		/*if (this.id == 0) {
-		    this.send(1, "0");
-		}*/
-	    // Yuetao's modification: end
-	}
+    if (this._dead) {
+        if (this.getTime() >= this._recoverTime) {
+            this._log("recovered");
+            this._needToRecover = true;
+            this._dead = false;
+            this.paxos = new Paxos(this);
+        }
+    }
 
-    // Yuetao's modification: begin
-	this.paxos.onTick();
-	this.needToRecover = false;
-	this.needToPropose = false;
-	/*msg = this.recv();
-	if (msg) {
-		console.log("Message{" + msg.data.toString() + "} recved from node[" + msg.from.toString() + "] at time(" + msg.recvTime.toString() + ")");
-		this.send(msg.from, (parseInt(msg.data) + 1).toString());
-	}*/
-    // Yuetao's modification: end
+    if (!this._dead) {
+        this.paxos.onTick();
+        this._needToRecover = false;
+        this._needToPropose = false;
+
+        if (Math.random() < this.failRate / this.averageFailTime) {
+            this._log("failed");
+            this._dead = true;
+            this._recoverTime = this.getTime()
+                + Math.round(Math.random() * this.averageFailTime * 2);
+        }
+    }
 }
 
 Node.prototype.getStorage = function () {
+    return this._storage;
 }
 
 Node.prototype.setStorage = function (data) {
+    this._storage = data;
 }
 
 Node.prototype.getTime = function () {
-	return this.ctx.time;
+    return this._framework.time;
 }
 
 Node.prototype.isOnRecovery = function () {
-	return this.needToRecover;
+    return this._needToRecover;
 }
 
 Node.prototype.isOnRequest = function () {
-	return this.needToPropose;
-}
-
-Node.prototype.dump = function() {
-	console.log(this.id);
+    return this._needToPropose;
 }
 
 Framework = function() {
-	this.nodeId = 0;
-	this.nodes = [];
-	this.time = 0;
+    this.nodes = [];
+    this.time = 0;
 
-	this.fromMessage = [];
-	this.toMessage = new MinHeap(null, function(a, b){return a.recvTime < b.recvTime});
+    this.fromMessage = [];
+    this.toMessage = new MinHeap(
+        null, function (a, b) { return a.recvTime < b.recvTime });
 }
 
 Framework.prototype.initialize = function () {
-    // Yuetao's modification:begin
-	/*this.createNode({});
-	this.createNode({});*/
-
     for (var i = 0; i < N; ++i) {
         this.createNode({});
     }
-    // Yuetao's modification: end
 
-	this.graph = [];
-	console.log("node count", this.nodeId);
-	for (i = 0; i < this.nodeId; i++) {
-		this.graph.push([]);
-		for (j = 0; j < this.nodeId; j++) {
-		    // Yuetao's modification: begin
-		    this.graph[i].push(new Connection(i, j, 10));
-
-			/*if (i != j) {
-				this.graph[i].push(new Connection(i, j, 10));
-			} else {
-				this.graph[i].push(null);
-			}*/
-            // Yuetao's modification: end
-		}
-	}
+    this.graph = [];
+    console.log("node count", this.nodes.length);
+    for (i = 0; i < this.nodes.length; i++) {
+        this.graph.push([]);
+        for (j = 0; j < this.nodes.length; j++) {
+            this.graph[i].push(new Connection(i, j, 10));
+        }
+    }
 }
 
 Framework.prototype.createNode = function(conf) {
-	node = new Node(this.nodeId++, this);
-	this.nodes.push(node);
+    node = new Node(this.nodes.length, this);
+    this.nodes.push(node);
+}
+
+Framework.prototype.sendMessage = function (from, to, msg) {
+    var conn = this.graph[from][to];
+    var recvTime = this.time + conn.minTime +
+        Math.round(Math.random() * (conn.maxTime - conn.minTime));
+
+    var msg = new Message(from, to, this.time, recvTime, msg);
+    this.toMessage.push(msg);
 }
 
 Framework.prototype.run = function() {
-	i = 0;
-	while (this.time < 500) {
-		//move FromMessage to ToMessage
-		while (this.fromMessage.length) {
-			msg = this.fromMessage.pop();
-			msg.recvTime = this.graph[msg.from][msg.to].time + msg.sendTime;
-			this.toMessage.push(msg);
-		}
-		// assert current time always <= recvTime of any message
-		while (this.toMessage.size() && 
-			this.toMessage.heap[0].recvTime == this.time) {
-			msg = this.toMessage.pop();
-			this.nodes[msg.to].recvBuffer.push(msg);
-		}
+    i = 0;
+    while (this.time < 500) {
+        // assert current time always <= recvTime of any message
+        if (this.toMessage.size() &&
+            this.toMessage.heap[0].recvTime < this.time) {
+            alert("SB!");
+        }
 
-		for (j = 0; j < this.nodeId; j++) {
-			if (this.nodes[j].die) {
-				this.nodes[j].needToRecover = true;
-				this.nodes[j].die = false;
-			}
-			this.nodes[j].tick();
-		}
-		++this.time;
-	}
-}
+        while (this.toMessage.size() && 
+            this.toMessage.heap[0].recvTime == this.time) {
+            msg = this.toMessage.pop();
+            this.nodes[msg.to].deliverMessage(msg);
+        }
 
-Framework.prototype.getNodeCount = function() {
-	return this.nodeId;
+        for (j = 0; j < this.nodes.length; j++) {
+            this.nodes[j].tick();
+        }
+        ++this.time;
+    }
 }
 
 Connection = function(from, to, time) {
-	this.from = from;
-	this.to = to;
-	this.time = time;
+    this.from = from;
+    this.to = to;
+    this.dupRate = 0;
+    this.lossRate = 0;
+    this.minTime = 5;
+    this.maxTime = 15;
 }
 
-Message = function(from, to, sendTime, data) {
-	this.sendTime = sendTime;
-	this.recvTime = null; //need to be set by framework
-	this.from = from;
-	this.to = to;
-	this.data = data;
+Message = function(from, to, sendTime, recvTime, data) {
+    this.sendTime = sendTime;
+    this.recvTime = recvTime;
+    this.from = from;
+    this.to = to;
+    this.data = data;
 }

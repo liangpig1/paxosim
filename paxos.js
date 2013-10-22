@@ -42,7 +42,7 @@ Paxos.prototype.onTick = function () {
 
     // proposal timeout
     if (this._isProposer &&
-        this._node.getTime() > this._proposeTime + this.proposalTimeout) {
+        this._node.getTime() >= this._proposeTime + this.proposalTimeout) {
         this._onRequest();
     }
 }
@@ -56,7 +56,8 @@ Paxos.prototype._nextUniqueNumber = function (current) {
 }
 
 Paxos.prototype._log = function (msg) {
-    console.log("[Paxos:" + this._node.getId().toString() +  "] " + msg);
+    console.log("[Time:" + this._node.getTime().toString()
+        + " Paxos:" + this._node.getId().toString() + "] " + msg);
 }
 
 Paxos.prototype._onRecovery = function () {
