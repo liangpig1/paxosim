@@ -3,7 +3,7 @@
 	this.ctx = context;
 	this.die = true;
 	this.needToPropose = false;
-	this.needToRecover = false;
+	this.needToRecover = true; /* Yuetao modified */
 	this.recvBuffer = [];
 }
 
@@ -28,15 +28,23 @@ Node.prototype.tick = function () {
 	if (this.needToRecover) {
 		console.log("node[" + this.id + "] is restarted");
 		this.needToRecover = false;
-		if (this.id == 0) {
-			this.send(1, "0");
-		}
+
+	    // Yuetao's modification: begin
+		this.paxos = new Paxos(this);
+		/*if (this.id == 0) {
+		    this.send(1, "0");
+		}*/
+	    // Yuetao's modification: end
 	}
-	msg = this.recv();
+
+    // Yuetao's modification: begin
+	this.paxos.onTick();
+	/*msg = this.recv();
 	if (msg) {
 		console.log("Message{" + msg.data.toString() + "} recved from node[" + msg.from.toString() + "] at time(" + msg.recvTime.toString() + ")");
 		this.send(msg.from, (parseInt(msg.data) + 1).toString());
-	}
+	}*/
+    // Yuetao's modification: end
 }
 
 Node.prototype.getStorage = function () {
@@ -70,9 +78,16 @@ Framework = function() {
 	this.toMessage = new MinHeap(null, function(a, b){return a.recvTime < b.recvTime});
 }
 
-Framework.prototype.initialize = function() {
-	this.createNode({});
-	this.createNode({});
+Framework.prototype.initialize = function () {
+    // Yuetao's modification:begin
+	/*this.createNode({});
+	this.createNode({});*/
+
+    for (var i = 0; i < N; ++i) {
+        this.createNode({});
+    }
+    // Yuetao's modification: end
+
 	this.graph = [];
 	console.log("node count", this.nodeId);
 	for (i = 0; i < this.nodeId; i++) {

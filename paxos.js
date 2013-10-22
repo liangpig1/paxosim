@@ -54,7 +54,7 @@ Paxos.prototype._onRequest = function () {
 
     this._isProposer = true;
     for (var i = 0; i < N; ++i) {
-        var msg = new Message(this._node.getId(), "prepare", this._number);
+        var msg = new PaxosMessage(this._node.getId(), "prepare", this._number);
         this._node.send(i, msg);
     }
 }
@@ -63,7 +63,7 @@ Paxos.prototype._onPrepare = function (msg) {
     this._log(msg.toString());
 
     if (msg.detail >= this._prepareNumber) {
-        var msg = new Message(this._node.getId(), "promise",
+        var msg = new PaxosMessage(this._node.getId(), "promise",
             [msg.detail, this._highestAcceptedNumber, this._acceptedValue]);
         this._node.send(msg.from, msg);
         this._prepareNumber = msg.detail;
@@ -95,7 +95,7 @@ Paxos.prototype._onPromise = function (msg) {
                 this._proposingValue = Math.round(Math.random() * 100);
             }
 
-            var msg = new Message(this._node.getId(), "accept",
+            var msg = new PaxosMessage(this._node.getId(), "accept",
                 [this._proposalNumber, this._proposingValue]);
 
             this._isProposer = false;
@@ -116,7 +116,7 @@ Paxos.prototype._onAccept = function (msg) {
     }
 }
 
-Message = function (from, type, detail)
+PaxosMessage = function (from, type, detail)
 {
     this.from = from;
     this.type = type;
@@ -124,7 +124,7 @@ Message = function (from, type, detail)
     return this;
 }
 
-Message.prototype.toString = function () {
+PaxosMessage.prototype.toString = function () {
     var result = this.from + ":" + this.type + "(";
     if (this.detail.constructor == Number) {
         result += this.detail;
