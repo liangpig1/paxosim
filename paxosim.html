@@ -5,19 +5,24 @@
 		<title>Paxos Simulator</title>
 		<script type="text/javascript" src="./minheap.js"></script>
 		<script type="text/javascript" src="./framework.js"></script>
-        <script type="text/javascript" src="paxos.js"></script>
+        <script type="text/javascript" src="./paxos.js"></script>
+        <script type="text/javascript" src="./ui.js"></script>
 	</head>
 
 	<body>
         <h1>Paxos Simulator</h1>
+        <canvas width="480" height="480" id="canvas"></canvas>
+        <table id="settings"></table>
         <script>
-            N = 10;
-            console.log("paxos simulated simple");
-            context = new Framework();
-            context.initialize();
-            context.nodes[0]._needToPropose = true;
-            //context.nodes[1]._needToPropose = true;
-            context.run();
+            window.onload = function () {
+                a = new Object();
+                framework = new Framework(10, 0.1, 50, 500, 1000, 0, 0.3, 40, 80);
+
+                ui = new UI(framework,
+                    document.getElementById("canvas"),
+                    document.getElementById("settings"));
+                ui.run();
+            };
         </script>
 	</body>
 </html>

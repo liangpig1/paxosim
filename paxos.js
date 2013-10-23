@@ -4,7 +4,6 @@ Paxos = function (node) {
     this._node = node;
 
     this._proposalNumber = this._firstUniqueNumber();
-    this.proposalTimeout = 50;
     this._isProposer = false;
     this._proposeTime = null;
     this._receivedPromise = 0;
@@ -18,6 +17,10 @@ Paxos = function (node) {
     this._acceptedValue = null;
     
     return this;
+}
+
+Paxos.prototype.getAcceptedValue = function () {
+    return this._acceptedValue;
 }
 
 Paxos.prototype.onTick = function () {
@@ -42,17 +45,17 @@ Paxos.prototype.onTick = function () {
 
     // proposal timeout
     if (this._isProposer &&
-        this._node.getTime() >= this._proposeTime + this.proposalTimeout) {
+        this._node.getTime() >= this._proposeTime + this._node.paxosProposalTimeout) {
         this._onRequest();
     }
 }
 
 Paxos.prototype._firstUniqueNumber = function () {
-    return -N + this._node.getId();
+    return -this._node.countNodes() + this._node.getId();
 }
 
 Paxos.prototype._nextUniqueNumber = function (current) {
-    return current + N;
+    return current + this._node.countNodes();
 }
 
 Paxos.prototype._log = function (msg) {
@@ -80,8 +83,12 @@ Paxos.prototype._onRequest = function () {
     this._isProposer = true;
     this._proposeTime = this._node.getTime();
     this._proposalNumber = this._nextUniqueNumber(this._proposalNumber);
+    this._promisedNodes = new Array();
+    this._highestPromiseNumber = -1;
+    this._highestPromiseValue = null;
+    this._receivedPromise = 0;
     this._save();
-    for (var i = 0; i < N; ++i) {
+    for (var i = 0; i < this._node.countNodes(); ++i) {
         var msg = new PaxosMessage(this._node.getId(), "prepare", this._proposalNumber);
         this._node.send(i, msg);
     }
@@ -118,7 +125,7 @@ Paxos.prototype._onPromise = function (msg) {
 
         ++this._receivedPromise;
         this._save();
-        if (this._receivedPromise >= Math.ceil((N + 1) / 2)) {
+        if (this._receivedPromise >= Math.ceil((this._node.countNodes() + 1) / 2)) {
             if (this._highestPromiseValue) {
                 this._proposingValue = this._highestPromiseValue;
             } else if (!this._proposingValue) {
@@ -128,7 +135,7 @@ Paxos.prototype._onPromise = function (msg) {
 
             var newMsg = new PaxosMessage(this._node.getId(), "accept",
                 [this._proposalNumber, this._proposingValue]);
-            for (var i = 0; i < N; ++i) {
+            for (var i = 0; i < this._node.countNodes(); ++i) {
                 this._node.send(i, newMsg);
             }
 
@@ -167,6 +174,10 @@ Paxos.prototype._save = function () {
         savedIsProposer: this._isProposer,
     };
     this._node.setStorage(data);
+}
+
+Paxos.prototype.getState = function () {
+    return "stub";
 }
 
 PaxosMessage = function (from, type, detail) {

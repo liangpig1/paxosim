@@ -7,13 +7,20 @@
     this._recvBuffer = [];
     this._storage = null;
 
-    this.failRate = 0.4;
+    this.paxos = new Paxos(this);
+    this.paxosProposalTimeout = 50;
+    this.paxosListenTimeout = 1000;
+    this.failRate = 0;
     this.averageFailTime = 10;
     this._recoverTime = 0;
 }
 
 Node.prototype.getId = function () {
     return this._id;
+}
+
+Node.prototype.countNodes = function () {
+    return this._framework.countNodes();
 }
 
 Node.prototype._log = function (msg) {
@@ -35,19 +42,14 @@ Node.prototype.recv = function () {
 }
 
 Node.prototype.deliverMessage = function (msg) {
-    if (!this._dead) {
+    if (!this._dead && !msg.dropped) {
         this._recvBuffer.push(msg);
     }
 }
 
 Node.prototype.tick = function () {
-    if (this._dead) {
-        if (this.getTime() >= this._recoverTime) {
-            this._log("recovered");
-            this._needToRecover = true;
-            this._dead = false;
-            this.paxos = new Paxos(this);
-        }
+    if (this._dead && this.getTime() >= this._recoverTime) {
+        this.reverseState();
     }
 
     if (!this._dead) {
@@ -55,11 +57,8 @@ Node.prototype.tick = function () {
         this._needToRecover = false;
         this._needToPropose = false;
 
-        if (Math.random() < this.failRate / this.averageFailTime) {
-            this._log("failed");
-            this._dead = true;
-            this._recoverTime = this.getTime()
-                + Math.round(Math.random() * this.averageFailTime * 2);
+        if (Math.random() < 1 / (this.averageFailTime * (1 / this.failRate - 1))) {
+            this.reverseState();
         }
     }
 }
@@ -73,7 +72,7 @@ Node.prototype.setStorage = function (data) {
 }
 
 Node.prototype.getTime = function () {
-    return this._framework.time;
+    return this._framework.getTime();
 }
 
 Node.prototype.isOnRecovery = function () {
@@ -84,40 +83,143 @@ Node.prototype.isOnRequest = function () {
     return this._needToPropose;
 }
 
-Framework = function () {
-    this.nodes = [];
-    this.time = 0;
+Node.prototype.request = function () {
+    this._needToPropose = true;
+}
 
-    this.fromMessage = [];
-    this.toMessage = new MinHeap(null,
+Node.prototype.reverseState = function () {
+    if (this._dead) {
+        this._log("recovered");
+        this._dead = false;
+        this._needToRecover = true;
+        this.paxos = new Paxos(this);
+
+    } else {
+        this._log("failed");
+        this._dead = true;
+        this._recoverTime = this.getTime()
+            + Math.round(Math.random() * this.averageFailTime * 2);
+    }
+}
+
+Node.prototype.isWorking = function () {
+    return !this._dead;
+}
+
+Node.prototype.getSettings = function () {
+    var self = this;
+    return [
+        new InfoRow("Node id", this, "_id"),
+        new InputRow("Fail Rate", this, "failRate", 0, 1, false),
+        new ButtonRow("Propose", function () { self.request(); }),
+    ];
+}
+
+Framework = function (
+    nodeCount,
+    nodeFailRate,
+    nodeAverageFailTime,
+    paxosProposalTimeout,
+    paxosListenTimeout,
+    connectionDupRate,
+    connectionLossRate,
+    connectionMinTime,
+    connectionMaxTime) {
+
+    this.nodeCount = nodeCount;
+    this.nodeFailRate = nodeFailRate;
+    this.nodeAverageFailTime = nodeAverageFailTime;
+    this.paxosProposalTimeout = paxosProposalTimeout;
+    this.paxosListenTimeout = paxosListenTimeout;
+    this.connectionDupRate = connectionDupRate;
+    this.connectionLossRate = connectionLossRate;
+    this.connectionMinTime = connectionMinTime;
+    this.connectionMaxTime = connectionMaxTime;
+
+    this.reset();
+}
+
+Framework.prototype.countNodes = function () {
+    return this._nodes.length;
+}
+
+Framework.prototype.getNodes = function () {
+    return this._nodes;
+}
+
+Framework.prototype.getGraph = function () {
+    return this._graph;
+}
+
+Framework.prototype.getMessages = function () {
+    return this._toMessage.heap;
+}
+
+Framework.prototype.getTime = function () {
+    return this._time;
+}
+
+Framework.prototype.reset = function () {
+    this._time = 0;
+
+    this._nodes = [];
+    for (var i = 0; i < this.nodeCount; ++i) {
+        node = new Node(this._nodes.length, this);
+        this._nodes.push(node);
+    }
+    this.setNodeFailures();
+
+    this._graph = [];
+    for (i = 0; i < this.nodeCount; ++i) {
+        this._graph.push([]);
+        for (j = 0; j < this.nodeCount; ++j) {
+            var conn = new Connection(i, j);
+            this._graph[i].push(conn);
+        }
+    }
+    this.setConnectionFailures();
+
+    this._toMessage = new MinHeap(null,
         function (a, b) {
             return a.recvTime < b.recvTime ? -1 : (
                 a.recvTime == b.recvTime ? 0 : 1);
         });
 }
 
-Framework.prototype.initialize = function () {
-    for (var i = 0; i < N; ++i) {
-        this.createNode({});
+Framework.prototype.setNodeFailures = function () {
+    for (var i = 0; i < this._nodes.length; ++i) {
+        node = this._nodes[i];
+        node.failRate = this.nodeFailRate;
+        node.averageFailTime = this.nodeAverageFailTime;
+        node.paxosProposalTimeout = this.paxosProposalTimeout;
+        node.paxosListenTimeout = this.paxosListenTimeout;
     }
+}
 
-    this.graph = [];
-    console.log("node count", this.nodes.length);
-    for (i = 0; i < this.nodes.length; i++) {
-        this.graph.push([]);
-        for (j = 0; j < this.nodes.length; j++) {
-            this.graph[i].push(new Connection(i, j, 10));
+Framework.prototype.setConnectionFailures = function () {
+    for (i = 0; i < this._nodes.length; ++i) {
+        for (j = 0; j < this._nodes.length; ++j) {
+            var conn = this._graph[i][j];
+
+            if (i != j) {
+                conn.dupRate = this.connectionDupRate;
+                conn.lossRate = this.connectionLossRate;
+                conn.minTime = this.connectionMinTime;
+                conn.maxTime = this.connectionMaxTime;
+            } else {
+                conn.dupRate = conn.lossRate = 0;
+                conn.minTime = conn.maxTime = 1;
+            }
         }
     }
 }
 
-Framework.prototype.createNode = function (conf) {
-    node = new Node(this.nodes.length, this);
-    this.nodes.push(node);
-}
-
 Framework.prototype.sendMessage = function (from, to, data) {
-    var conn = this.graph[from][to];
+    var conn = this._graph[from][to];
+    if (!conn.isWorking()) {
+        return;
+    }
+
     if (Math.random() < conn.dupRate) {
         this.sendMessage(from, to, data);
     }
@@ -125,37 +227,49 @@ Framework.prototype.sendMessage = function (from, to, data) {
         return;
     }
 
-    var recvTime = this.time + conn.minTime +
+    var recvTime = this._time + conn.minTime +
         Math.round(Math.random() * (conn.maxTime - conn.minTime));
 
-    var msg = new Message(from, to, this.time, recvTime, data);
-    this.toMessage.push(msg);
+    var msg = new Message(from, to, this._time, recvTime, data);
+    this._toMessage.push(msg);
+}
+
+Framework.prototype.tick = function () {
+    while (this._toMessage.size() &&
+            this._toMessage.getMin().recvTime == this._time) {
+        var msg = this._toMessage.pop();
+        this._nodes[msg.to].deliverMessage(msg);
+    }
+
+    for (j = 0; j < this._nodes.length; j++) {
+        this._nodes[j].tick();
+    }
+    ++this._time;
 }
 
 Framework.prototype.run = function () {
     i = 0;
-    while (this.time < 500) {
-        // assert current time always <= recvTime of any message
-        while (this.toMessage.size() && 
-            this.toMessage.getMin().recvTime == this.time) {
-            var msg = this.toMessage.pop();
-            this.nodes[msg.to].deliverMessage(msg);
-        }
-
-        for (j = 0; j < this.nodes.length; j++) {
-            this.nodes[j].tick();
-        }
-        ++this.time;
+    while (this._time < 500) {
+        this.tick();
     }
 }
 
-Connection = function (from, to, time) {
+Connection = function (from, to) {
     this.from = from;
     this.to = to;
     this.dupRate = 0.2;
     this.lossRate = 0.2;
     this.minTime = 5;
     this.maxTime = 15;
+    this._dead = false;
+}
+
+Connection.prototype.isWorking = function () {
+    return !this._dead;
+}
+
+Connection.prototype.reverseState = function () {
+    this._dead = !this._dead;
 }
 
 Message = function (from, to, sendTime, recvTime, data) {
@@ -164,4 +278,5 @@ Message = function (from, to, sendTime, recvTime, data) {
     this.from = from;
     this.to = to;
     this.data = data;
+    this.dropped = false;
 }
