@@ -13,9 +13,9 @@
         <h1>Paxos Simulator</h1>
         <canvas width="480" height="480" id="canvas"></canvas>
         <table id="settings"></table>
+		<button id="start">Simulate</button>
         <script>
-            window.onload = function () {
-                a = new Object();
+            document.getElementById("start").onclick = function () {
                 framework = new Framework(10, 0.1, 50, 500, 1000, 0, 0.3, 40, 80);
 
                 ui = new UI(framework,

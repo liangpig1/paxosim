@@ -179,7 +179,7 @@ UI = function (framework, canvas, settingsTable) {
 
     var self = this;
     this.canvas.onmousedown = function (e) { self.onCanvasClick(e); };
-    document.oncontextmenu = function (e) { window.event.returnValue = false; };
+    this.canvas.oncontextmenu = function (e) { e.preventDefault(); e.stopPropagation(); };
 }
 
 UI.prototype.findElementAt = function (x, y) {
