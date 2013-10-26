@@ -176,10 +176,13 @@ UI = function (framework, canvas, settingsTable) {
     this.framework = framework;
     this.canvas = canvas;
     this.settingsTable = settingsTable;
+    this.messageElements = [];
 
     var self = this;
     this.canvas.onmousedown = function (e) { self.onCanvasClick(e); };
     this.canvas.oncontextmenu = function (e) { e.preventDefault(); e.stopPropagation(); };
+
+    this.framework.setUI(this);
 }
 
 UI.prototype.findElementAt = function (x, y) {
@@ -239,13 +242,17 @@ UI.prototype.generateSettledElements = function () {
     }
 }
 
-UI.prototype.generateMovingElements = function () {
+/*UI.prototype.generateMovingElements = function () {
     this.messageElements = [];
     var messages = this.framework.getMessages();
     for (var i = 0; i < messages.length; ++i) {
         this.messageElements.push(new MessageElement(
             this.canvas, messages[i], this));
     }
+}*/
+
+UI.prototype.createMovingElements = function(message) {
+    this.messageElements.push(new MessageElement(this.cvs, msg, this));
 }
 
 UI.prototype.draw = function () {
@@ -271,7 +278,7 @@ UI.prototype.run = function () {
     var self = this;
     this.intervalId = setInterval(function () {
         self.framework.tick();
-        self.generateMovingElements();
+        //self.generateMovingElements();
         self.draw();
     }, 40);
 }

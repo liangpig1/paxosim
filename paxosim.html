@@ -1,19 +1,19 @@
 <!DOCTYPE HTML>
 
 <html>
-	<head>
-		<title>Paxos Simulator</title>
-		<script type="text/javascript" src="./minheap.js"></script>
-		<script type="text/javascript" src="./framework.js"></script>
+    <head>
+        <title>Paxos Simulator</title>
+        <script type="text/javascript" src="./minheap.js"></script>
+        <script type="text/javascript" src="./framework.js"></script>
         <script type="text/javascript" src="./paxos.js"></script>
         <script type="text/javascript" src="./ui.js"></script>
-	</head>
+    </head>
 
-	<body>
+    <body>
         <h1>Paxos Simulator</h1>
         <canvas width="480" height="480" id="canvas"></canvas>
         <table id="settings"></table>
-		<button id="start">Simulate</button>
+        <button id="start">Simulate</button>
         <script>
             document.getElementById("start").onclick = function () {
                 framework = new Framework(10, 0.1, 50, 500, 1000, 0, 0.3, 40, 80);
@@ -24,5 +24,5 @@
                 ui.run();
             };
         </script>
-	</body>
+    </body>
 </html>

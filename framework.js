@@ -136,7 +136,13 @@ Framework = function (
     this.connectionMinTime = connectionMinTime;
     this.connectionMaxTime = connectionMaxTime;
 
+	this._ui = null;
+
     this.reset();
+}
+
+Framework.prototype.setUI = function(ui) { 
+	this._ui = ui;
 }
 
 Framework.prototype.countNodes = function () {
@@ -231,10 +237,13 @@ Framework.prototype.sendMessage = function (from, to, data) {
         Math.round(Math.random() * (conn.maxTime - conn.minTime));
 
     var msg = new Message(from, to, this._time, recvTime, data);
+	this._ui.createMovingElements(msg);
     this._toMessage.push(msg);
 }
 
 Framework.prototype.tick = function () {
+	if (!this._ui)
+		return;
     while (this._toMessage.size() &&
             this._toMessage.getMin().recvTime == this._time) {
         var msg = this._toMessage.pop();
