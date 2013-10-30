@@ -60,6 +60,11 @@ MessageElement = function (cvs, msg, ui) {
 
 MessageElement.prototype.draw = function () {
     ctx = this.cvs.getContext("2d");
+	ctx.beginPath();
+	ctx.rect(this.x - 30, this.y - 20, 50, 50);
+	ctx.strokeStyle = "black";
+	ctx.stroke();
+
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
 

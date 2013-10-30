@@ -1,0 +1,15 @@
+#config {
+	border: 1px solid black;
+	overflow: hidden;
+}
+
+.button {
+	margin: 1px;
+	padding: 1px;
+	border: 1px solid black;
+}
+
+#canvas {
+	border: 1px solid black;
+	float: left;
+}

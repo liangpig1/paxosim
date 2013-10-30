@@ -2,7 +2,9 @@
 
 <html>
 	<head>
+		<meta charset="UTF-8"/>
 		<title>Paxos Simulator</title>
+		<link rel="stylesheet" type="text/css" href="./paxosim.css"/>
 		<script type="text/javascript" src="./minheap.js"></script>
 		<script type="text/javascript" src="./framework.js"></script>
         <script type="text/javascript" src="./paxos.js"></script>
@@ -12,15 +14,26 @@
 	<body>
         <h1>Paxos Simulator</h1>
         <canvas width="480" height="480" id="canvas"></canvas>
+		<!--<div id="config">
+			<div class="button">Start</div>
+		</div>-->
         <table id="settings"></table>
 		<button id="start">Simulate</button>
         <script>
+			isStarted = false;
             document.getElementById("start").onclick = function () {
+				if (isStarted) {
+					alert("Already Started!");
+					return;
+				}
+				isStarted = true;
                 framework = new Framework(10, 0.1, 50, 500, 1000, 0, 0.3, 40, 80);
 
                 ui = new UI(framework,
                     document.getElementById("canvas"),
-                    document.getElementById("settings"));
+                    document.getElementById("settings"),
+					80
+					);
                 ui.run();
             };
         </script>
