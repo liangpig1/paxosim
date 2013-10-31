@@ -62,7 +62,7 @@ MessageElement.prototype.draw = function () {
     ctx = this.cvs.getContext("2d");
     ctx.save();
     ctx.beginPath();
-    ctx.rect(this.x - 35, this.y - 15, 70, 30);
+    ctx.rect(this.x - 35, this.y - 25, 70, 50);
     ctx.lineWidth = 3;
     ctx.strokeStyle = "white";
     ctx.stroke();
@@ -78,9 +78,20 @@ MessageElement.prototype.draw = function () {
 
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.font = "13pt 'Comic Sans MS'";
+    ctx.font = "10pt 'Courier'";
     ctx.fillStyle = "black";
-    ctx.fillText(this.msg.data.detail, this.x - 10, this.y);
+
+	if (this.msg.data.type == "prepare") {
+		ctx.fillText("N:" + this.msg.data.detail, this.x, this.y);
+	} else if (this.msg.data.type == "promise") {
+		ctx.fillText("N:" + this.msg.data.detail[0], this.x, this.y - 15);
+		ctx.fillText("N0:" + this.msg.data.detail[1], this.x, this.y); 
+		ctx.fillText("V:" + this.msg.data.detail[2], this.x, this.y + 15); 
+	} else {
+		ctx.fillText("N:" + this.msg.data.detail[0], this.x, this.y - 10);
+		ctx.fillText("V:" + this.msg.data.detail[1], this.x, this.y + 10); 
+	}
+   // ctx.fillText(this.msg.data.detail, this.x - 10, this.y);
 	if (this.msg.dropped) {
 		ctx.lineWidth = 5;
 
