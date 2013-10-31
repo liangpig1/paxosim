@@ -78,18 +78,20 @@ MessageElement.prototype.draw = function () {
 
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.font = "10pt 'Courier'";
     ctx.fillStyle = "black";
+	ctx.font = "bold 8pt 'Courier'";
+	ctx.fillText(this.msg.data.type, this.x, this.y - 20);
 
+    ctx.font = "10pt 'Courier'";
 	if (this.msg.data.type == "prepare") {
-		ctx.fillText("N:" + this.msg.data.detail, this.x, this.y);
+		ctx.fillText("N:" + this.msg.data.detail, this.x, this.y + 5);
 	} else if (this.msg.data.type == "promise") {
-		ctx.fillText("N:" + this.msg.data.detail[0], this.x, this.y - 15);
-		ctx.fillText("N0:" + this.msg.data.detail[1], this.x, this.y); 
+		ctx.fillText("N:" + this.msg.data.detail[0], this.x, this.y - 5);
+		ctx.fillText("N0:" + this.msg.data.detail[1], this.x, this.y + 5); 
 		ctx.fillText("V:" + this.msg.data.detail[2], this.x, this.y + 15); 
 	} else {
-		ctx.fillText("N:" + this.msg.data.detail[0], this.x, this.y - 10);
-		ctx.fillText("V:" + this.msg.data.detail[1], this.x, this.y + 10); 
+		ctx.fillText("N:" + this.msg.data.detail[0], this.x, this.y - 5);
+		ctx.fillText("V:" + this.msg.data.detail[1], this.x, this.y + 15); 
 	}
    // ctx.fillText(this.msg.data.detail, this.x - 10, this.y);
 	if (this.msg.dropped) {
@@ -138,7 +140,7 @@ ConnectionElement.prototype.mouseLeftDown = function () {
 
 ConnectionElement.prototype.mouseRightDown = function () {
 }
-
+/*
 InfoRow = function (prompt, obj, key) {
     this.prompt = prompt;
     this.obj = obj;
@@ -154,19 +156,25 @@ InfoRow.prototype.generateRow = function () {
     row.appendChild(left);
     row.appendChild(right);
     return row;
-}
+}*/
 
-InputRow = function (prompt, obj, key, min, max, isInt) {
-    this.prompt = prompt;
+Input = function (elemt, ui, obj, key, min, max, isInt, f) {
+	this.elemt = elemt;
+	this.ui = ui;
     this.obj = obj;
     this.key = key;
     this.min = min;
     this.max = max;
     this.isInt = isInt;
+
+	var self = this;
+	elemt.onchange = this.f ? this.f : function(e) {
+		self.onChange();
+	}
     return this;
 }
 
-InputRow.prototype.generateRow = function () {
+/*InputRow.prototype.generateRow = function () {
     row = document.createElement("tr");
     left = document.createElement("td");
     left.innerHTML = this.prompt;
@@ -181,10 +189,10 @@ InputRow.prototype.generateRow = function () {
     row.appendChild(left);
     row.appendChild(right);
     return row;
-}
+}*/
 
-InputRow.prototype.onChange = function (inputBox) {
-    value = inputBox.value;
+Input.prototype.onChange = function () {
+    value = this.elemt.value;
 
     if (this.isInt) {
         value = Math.round(value);
@@ -195,39 +203,42 @@ InputRow.prototype.onChange = function (inputBox) {
         value = this.max;
     }
 
-    this.obj[this.key] = value;
-    inputBox.value = value;
+	if (this.obj != null && this.obj[this.key] != null) {
+    	this.obj[this.key] = value;
+    	this.elemt.value = value;
+	} else {
+		this.elemt.value = "N/A";
+	}
 }
 
-ButtonRow = function (prompt, onclick) {
-    this.prompt = prompt;
-    this.onclick = onclick;
+Button = function (elemt, ui, onclick) {
+	this.elemt = elemt;
+	this.ui = ui;
+	this.enable = true;
+	var self = this;
+    elemt.onclick = function(e) { if (self.enable) onclick(e); };
 }
 
-ButtonRow.prototype.generateRow = function () {
-    row = document.createElement("tr");
-    left = document.createElement("td");
-    right = document.createElement("td");
-
-    button = document.createElement("input");
-    button.type = "button";
-    button.value = this.prompt;
-    button.onclick = this.onclick;
-
-    right.appendChild(button);
-    row.appendChild(left);
-    row.appendChild(right);
-    return row;
+Button.prototype.toggle = function() {
+	if (this.enable) {
+		this.enable = false;
+		this.elemt.addClass("disabled");
+	} else {
+		this.enable = true;
+		this.elemt.removeClass("disabled");
+	}
 }
 
 UI = function (framework, canvas, settingsTable) {
     this.framework = framework;
     this.canvas = canvas;
     this.settingsTable = settingsTable;
+	this._isStarted = false;
 
     var self = this;
     this.canvas.onmousedown = function (e) { self.onCanvasClick(e); };
     this.canvas.oncontextmenu = function (e) { e.preventDefault(); e.stopPropagation(); };
+	this.initSettingsTable();
 }
 
 UI.prototype.findElementAt = function (x, y) {
@@ -324,6 +335,32 @@ UI.prototype.run = function () {
     }, 40);
 }
 
+UI.prototype.initSettingsTable = function() {
+	var self = this;
+	this.widgets = [
+	new Button(document.getElementById("restart"), this, function() {
+		if (!self._isStarted) {
+			self._isStarted = true;
+			self.framework.reset();
+			self.run();
+		} else {
+			if (confirm("Restart?")) {
+				self.framework.reset();
+            	self.generateSettledElements();
+			}
+		}
+	}),
+	new Input(document.getElementById("node_count"), this, this.framework, "nodeCount", 2, 100, true),
+
+	new Input(document.getElementById("fail_rate"), this, null, null, 0, 1, false)
+	];
+}
+
+UI.prototype.updateSettingsTable = function(obj) {
+
+
+}
+/*
 UI.prototype.updateSettingsTable = function (obj) {
     var settings = obj.getSettings();
     this.settingsTable.innerHTML = "";
@@ -333,8 +370,8 @@ UI.prototype.updateSettingsTable = function (obj) {
         var row = settings[i].generateRow();
         this.settingsTable.appendChild(row);
     }
-}
-
+}*/
+/*
 UI.prototype.getSettings = function () {
     var self = this;
     return [
@@ -343,4 +380,4 @@ UI.prototype.getSettings = function () {
             self.framework.reset();
             self.generateSettledElements();
         })];
-}
+}*/
