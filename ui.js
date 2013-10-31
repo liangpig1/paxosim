@@ -60,9 +60,9 @@ MessageElement = function (cvs, msg, ui) {
 
 MessageElement.prototype.draw = function () {
     ctx = this.cvs.getContext("2d");
-    ctx.beginPath();
     ctx.save();
-    ctx.rect(this.x - 30, this.y - 15, 70, 30);
+    ctx.beginPath();
+    ctx.rect(this.x - 35, this.y - 15, 70, 30);
     ctx.lineWidth = 3;
     ctx.strokeStyle = "white";
     ctx.stroke();
@@ -70,9 +70,9 @@ MessageElement.prototype.draw = function () {
     if (this.msg.data.type == "prepare") {
         ctx.fillStyle = "#99ff99";
     } else if (this.msg.data.type == "promise") {
-        ctx.fillStyle = "9999ff";
+        ctx.fillStyle = "#9999ff";
     } else {
-        ctx.fillStyle = "ff9999";
+        ctx.fillStyle = "#ff9999";
     }
     ctx.fill();
 
@@ -81,13 +81,33 @@ MessageElement.prototype.draw = function () {
     ctx.font = "13pt 'Comic Sans MS'";
     ctx.fillStyle = "black";
     ctx.fillText(this.msg.data.detail, this.x - 10, this.y);
+	if (this.msg.dropped) {
+		ctx.lineWidth = 5;
+
+		ctx.beginPath();
+		ctx.moveTo(this.x - 20, this.y - 20);
+		ctx.lineTo(this.x + 20, this.y + 20);
+		ctx.strokeStyle = "red";
+		ctx.stroke();
+
+		ctx.beginPath();
+		ctx.moveTo(this.x - 20, this.y + 20);
+		ctx.lineTo(this.x + 20, this.y - 20);
+		ctx.strokeStyle = "red";
+		ctx.stroke();
+	}
     ctx.restore();
 }
 
 MessageElement.prototype.isMouseIn = function (x, y) {
+    return (x >= this.x - 35 &&
+        x <= this.x + 35 &&
+        y >= this.y - 15 &&
+        y <= this.y + 15);
 }
 
 MessageElement.prototype.mouseLeftDown = function () {
+	this.msg.dropped = true;
 }
 
 MessageElement.prototype.mouseRightDown = function () {
