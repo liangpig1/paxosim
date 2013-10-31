@@ -57,55 +57,31 @@ MessageElement = function (cvs, msg, ui) {
     this.x = x1 + percent * (x2 - x1);
     this.y = y1 + percent * (y2 - y1);
 }
-/*
-MessageElement.prototype.marshal = function(str) { 
-	i = str.indexOf(":");
-	j = str.indexOf("(");
-	nid = parseInt(str.substr(0, i));
-	type = str.substr(i + 1, j - i - 1);
-	if (type == "prepare") {
-		idx = parseInt(str.substr(j + 1, str.length - j - 2));
-		return {type: 0, nid: nid, idx: idx};
-	} else if (type == "promise") {
-		k = str.indexOf(",");
-		a = parseInt(str.substr(j + 1, k - j - 1));
-		u = str.indexOf(",", k + 1);
-		b = parseInt(str.substr(k + 1, u - k - 1));
-		c = parseInt(str.substr(u + 1, str.length - u - 2));
-		return {type: 1, nid: nid, a: a, b: b, c: c}; 
-	} else if (type == "accept") {
-		k = str.indexOf(",");
-		a = parseInt(str.substr(j + 1, k - j - 1));
-		b = parseInt(str.substr(k + 1, str.length - k - 2));
-		return {type: 2, nid: nid, a: a, b: b};
-	}
-	return null;
-}*/
 
 MessageElement.prototype.draw = function () {
     ctx = this.cvs.getContext("2d");
-	ctx.beginPath();
-	ctx.save();
-	ctx.rect(this.x - 30, this.y - 15, 70, 30);
-	ctx.lineWidth = 3;
-	ctx.strokeStyle = "white";
-	ctx.stroke();
+    ctx.beginPath();
+    ctx.save();
+    ctx.rect(this.x - 30, this.y - 15, 70, 30);
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = "white";
+    ctx.stroke();
 
-	if (this.msg.data.type == "prepare") {
-		ctx.fillStyle = "#99ff99";
-	} else if (this.msg.data.type == "promise") {
-		ctx.fillStyle = "9999ff";
-	} else {
-		ctx.fillStyle = "ff9999";
-	}
-	ctx.fill();
+    if (this.msg.data.type == "prepare") {
+        ctx.fillStyle = "#99ff99";
+    } else if (this.msg.data.type == "promise") {
+        ctx.fillStyle = "9999ff";
+    } else {
+        ctx.fillStyle = "ff9999";
+    }
+    ctx.fill();
 
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-	ctx.font = "13pt 'Comic Sans MS'";
+    ctx.font = "13pt 'Comic Sans MS'";
     ctx.fillStyle = "black";
     ctx.fillText(this.msg.data.detail, this.x - 10, this.y);
-	ctx.restore();
+    ctx.restore();
 }
 
 MessageElement.prototype.isMouseIn = function (x, y) {
