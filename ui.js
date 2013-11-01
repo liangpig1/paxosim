@@ -1,5 +1,5 @@
 ﻿function isNumber(n) {
-	return !isNaN(parseFloat(n)) && isFinite(n);
+    return !isNaN(parseFloat(n)) && isFinite(n);
 }
 
 NodeElement = function (cvs, node, ui) {
@@ -153,12 +153,22 @@ ConnectionElement.prototype.mouseLeftDown = function () {
 ConnectionElement.prototype.mouseRightDown = function () {
 }
 
+Snippet = function(elemt, ui, f) {
+    this.elemt = elemt;
+    this.ui = ui;
+    this.onValueChanged = f.onValueChanged;
+}
+
+Snippet.prototype.onUpdate = function() {
+    this.elemt.innerHTML = this.onValueChanged()
+}
+
 Input = function (elemt, ui, min, max, isInt, f) {
     this.elemt = elemt;
     this.ui = ui;
     this.setObjValue = f.setObjValue;
     this.getObjValue = f.getObjValue;
-	this.isEnable = f.isEnable;
+    this.isEnable = f.isEnable;
 
     this.min = min;
     this.max = max;
@@ -177,20 +187,20 @@ Input = function (elemt, ui, min, max, isInt, f) {
 }
 
 Input.prototype.onUpdate = function() {
-	var e = this.isEnable ? this.isEnable() : true;
-	if (e) {
-		if (!this.enabled) {
-			this.elemt.disabled = false;
-			this.enabled = true;
-		}
-    	this.elemt.value = (v = this.getObjValue()) != null ? v : "N/A";
-	} else {
-		if (this.enabled) {
-			this.elemt.disabled = true;
-			this.elemt.value = "";
-			this.enabled = false;
-		}
-	}
+    var e = this.isEnable ? this.isEnable() : true;
+    if (e) {
+        if (!this.enabled) {
+            this.elemt.disabled = false;
+            this.enabled = true;
+        }
+        this.elemt.value = (v = this.getObjValue()) != null ? v : "N/A";
+    } else {
+        if (this.enabled) {
+            this.elemt.disabled = true;
+            this.elemt.value = "";
+            this.enabled = false;
+        }
+    }
 }
 
 Input.prototype.onChange = function () {
@@ -204,7 +214,7 @@ Input.prototype.onChange = function () {
     } else if (value > this.max) {
         value = this.max;
     }
-	this.elemt.value = this.setObjValue(value) ? value : "";
+    this.elemt.value = this.setObjValue(value) ? value : "";
 }
 
 Button = function (elemt, ui, onclick, isEnable) {
@@ -217,17 +227,17 @@ Button = function (elemt, ui, onclick, isEnable) {
 }
 
 Button.prototype.disable = function() {
-	if (this.enabled) {
-    	this.enabled = false;
-		UI.addClass(this.elemt, "disabled");
-	}
+    if (this.enabled) {
+        this.enabled = false;
+        UI.addClass(this.elemt, "disabled");
+    }
 }
 
 Button.prototype.enable = function() {
-	if (!this.enabled) {
-    	this.enabled = true;
-		UI.removeClass(this.elemt, "disabled");
-	}
+    if (!this.enabled) {
+        this.enabled = true;
+        UI.removeClass(this.elemt, "disabled");
+    }
 }
 
 Button.prototype.onUpdate = function() {
@@ -249,13 +259,13 @@ UI = function (framework, canvas, settingsTable) {
 
 // static function
 UI.addClass = function(elemt, c) {
-	elemt.className += (" " + c);
+    elemt.className += (" " + c);
 }
 
 UI.removeClass = function(elemt, c) {
-	elemt.className = elemt.className.replace((" " + c + " "), " ");
-	elemt.className = elemt.className.replace((c + " "), "");
-	elemt.className = elemt.className.replace((" " + c), "");
+    elemt.className = elemt.className.replace((" " + c + " "), " ");
+    elemt.className = elemt.className.replace((c + " "), "");
+    elemt.className = elemt.className.replace((" " + c), "");
 }
 
 UI.prototype.findElementAt = function (x, y) {
@@ -369,44 +379,44 @@ UI.prototype.initSettingsTable = function() {
     }),
 
     new Input(document.getElementById("node_count"), this, 2, 100, true, 
-		{
-        	setObjValue: function (value) {
-				if (!isNumber(value))
-					return false;
-            	if (self.framework != null && self.framework.nodeCount != null) { 
-                	self.framework.nodeCount = value;
-                	return true; 
-            	} 
-            	return false; 
-        	}, 
-        	getObjValue: function () { 
-            	if (self.framework != null)
-                	return self.framework.nodeCount;
-            	return null;
-        	}, 
-		}
+        {
+            setObjValue: function (value) {
+                if (!isNumber(value))
+                    return false;
+                if (self.framework != null && self.framework.nodeCount != null) { 
+                    self.framework.nodeCount = value;
+                    return true; 
+                } 
+                return false; 
+            }, 
+            getObjValue: function () { 
+                if (self.framework != null)
+                    return self.framework.nodeCount;
+                return null;
+            }, 
+        }
     ),
 
     new Input(document.getElementById("fail_rate"), this, 0, 1, false,
-		{
-        	setObjValue: function (value) {
-				if (!isNumber(value))
-					return false;
-            	if (self._currentNode) {
-                	self._currentNode.node.failRate = value;
-                	return true;
-            	}
-            	return false;
-        	}, 
-        	getObjValue: function () {
-            	if (self._currentNode)
-                	return self._currentNode.node.failRate;
-            	return null;
-        	},
-			isEnable: function() {
-				return self._currentNode != null;
-			}
-		}
+        {
+            setObjValue: function (value) {
+                if (!isNumber(value))
+                    return false;
+                if (self._currentNode) {
+                    self._currentNode.node.failRate = value;
+                    return true;
+                }
+                return false;
+            }, 
+            getObjValue: function () {
+                if (self._currentNode)
+                    return self._currentNode.node.failRate;
+                return null;
+            },
+            isEnable: function() {
+                return self._currentNode != null;
+            }
+        }
     ),
 
     new Button(document.getElementById("propose"), this, 
@@ -418,9 +428,18 @@ UI.prototype.initSettingsTable = function() {
         function() {
             return self._currentNode != null;
         }
-    )];
+    ),
 
-	this.onUpdate();
+    new Snippet(document.getElementById("node_id"), this,
+        {
+            onValueChanged: function() {
+                return self._currentNode ? self._currentNode.node.getId() : "Not Selected";
+            }
+        }
+    )
+    ];
+
+    this.onUpdate();
 }
 
 UI.prototype.updateSettingsTable = function(obj) {

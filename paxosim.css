@@ -76,7 +76,7 @@ body {
 }
 
 .button.disabled { 
-	cursor: auto;
+    cursor: auto;
     color: gray;
     border-color:gray;
 }

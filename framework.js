@@ -24,8 +24,8 @@ Node.prototype.countNodes = function () {
 }
 
 Node.prototype._log = function (msg) {
-   /* console.log("[Time:" + this.getTime().toString()
-        + " Node:" + this._id.toString() + "] " + msg);*/
+   console.log("[Time:" + this.getTime().toString()
+        + " Node:" + this._id.toString() + "] " + msg);
 }
 
 Node.prototype.send = function (id, msg) {
