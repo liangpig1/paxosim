@@ -364,14 +364,14 @@ UI.prototype.initSettingsTable = function() {
     new Input(document.getElementById("fail_rate"), this,
         function (value) {
             if (self._currentNode) {
-                self._currentNode.failRate = value;
+                self._currentNode.node.failRate = value;
                 return true;
             }
             return false;
         }, 
         function () {
             if (self._currentNode)
-                return self._currentNode.failRate;
+                return self._currentNode.node.failRate;
             return null;
         },
         0, 1, false
@@ -380,7 +380,7 @@ UI.prototype.initSettingsTable = function() {
     new Button(document.getElementById("propose"), this, 
         function() {
             if (self._currentNode) {
-                self._currentNode.request();
+                self._currentNode.node.request();
             }
         }, 
         function() {
