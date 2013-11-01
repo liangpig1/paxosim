@@ -3,6 +3,7 @@
     this.node = node;
     this.ui = ui;
     this.halfLength = 10;
+    this.isSelected = false;
 
     var rad = node.getId() / node.countNodes() * Math.PI * 2;
     this.x = cvs.width / 2 + (cvs.width - 30) / 2 * Math.sin(rad);
@@ -13,6 +14,13 @@ NodeElement.prototype.draw = function () {
     ctx = this.cvs.getContext("2d");
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
+
+    if (this.isSelected) {
+        ctx.save();
+        ctx.strokeStyle = "blue";
+        ctx.strokeRect(this.x - this.halfLength - 1, this.y - this.halfLength - 1, 22, 22);
+        ctx.restore();
+    }
 
     if (this.node.isWorking()) {
         ctx.strokeStyle = ctx.fillStyle = "blue";
@@ -34,7 +42,7 @@ NodeElement.prototype.isMouseIn = function (x, y) {
 }
 
 NodeElement.prototype.mouseLeftDown = function () {
-    this.ui.updateSettingsTable(this.node);
+    this.ui.updateSettingsTable(this);
 }
 
 NodeElement.prototype.mouseRightDown = function () {
@@ -382,7 +390,13 @@ UI.prototype.initSettingsTable = function() {
 }
 
 UI.prototype.updateSettingsTable = function(obj) {
+    if (this._currentNode) {
+        this._currentNode.isSelected = false;
+    }
     this._currentNode = obj;
+    if (obj) {
+        obj.isSelected = true;
+    }
     this.onUpdate();
 }
 
