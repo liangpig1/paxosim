@@ -106,15 +106,6 @@ Node.prototype.isWorking = function () {
     return !this._dead;
 }
 
-Node.prototype.getSettings = function () {
-    var self = this;
-    return [
-        new InfoRow("Node id", this, "_id"),
-        new InputRow("Fail Rate", this, "failRate", 0, 1, false),
-        new ButtonRow("Propose", function () { self.request(); }),
-    ];
-}
-
 Framework = function (
     nodeCount,
     nodeFailRate,
