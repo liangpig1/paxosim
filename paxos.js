@@ -59,8 +59,8 @@ Paxos.prototype._nextUniqueNumber = function (current) {
 }
 
 Paxos.prototype._log = function (msg) {
-    console.log("[Time:" + this._node.getTime().toString()
-        + " Paxos:" + this._node.getId().toString() + "] " + msg);
+    /*console.log("[Time:" + this._node.getTime().toString()
+        + " Paxos:" + this._node.getId().toString() + "] " + msg);*/
 }
 
 Paxos.prototype._onRecovery = function () {
