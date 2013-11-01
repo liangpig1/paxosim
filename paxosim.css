@@ -70,12 +70,13 @@ body {
     font-weight: bold;
 }
 .button:hover {
-    background-color: #aac;
+    background-color: #e55;
     border-color: white;
     color: white;
 }
 
 .button.disabled { 
+	cursor: auto;
     color: gray;
     border-color:gray;
 }

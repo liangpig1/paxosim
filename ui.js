@@ -204,7 +204,7 @@ Input.prototype.onChange = function () {
     } else if (value > this.max) {
         value = this.max;
     }
-	this.elemt.value = this.setObjValue(this.elemt.value) ? value : "";
+	this.elemt.value = this.setObjValue(value) ? value : "";
 }
 
 Button = function (elemt, ui, onclick, isEnable) {
@@ -217,11 +217,17 @@ Button = function (elemt, ui, onclick, isEnable) {
 }
 
 Button.prototype.disable = function() {
-    this.enabled = false;
+	if (this.enabled) {
+    	this.enabled = false;
+		UI.addClass(this.elemt, "disabled");
+	}
 }
 
 Button.prototype.enable = function() {
-    this.enabled = true;
+	if (!this.enabled) {
+    	this.enabled = true;
+		UI.removeClass(this.elemt, "disabled");
+	}
 }
 
 Button.prototype.onUpdate = function() {
@@ -243,9 +249,13 @@ UI = function (framework, canvas, settingsTable) {
 
 // static function
 UI.addClass = function(elemt, c) {
+	elemt.className += (" " + c);
 }
 
 UI.removeClass = function(elemt, c) {
+	elemt.className = elemt.className.replace((" " + c + " "), " ");
+	elemt.className = elemt.className.replace((c + " "), "");
+	elemt.className = elemt.className.replace((" " + c), "");
 }
 
 UI.prototype.findElementAt = function (x, y) {
