@@ -49,6 +49,10 @@ body {
 #canvas { 
     -moz-user-select: none;
     -webkit-user-select: none;
+	-webkit-touch-callout: none;
+	-khtml-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
 }
 
 #canvas_wrapper {
