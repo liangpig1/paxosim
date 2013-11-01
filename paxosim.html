@@ -1,68 +1,56 @@
 <!DOCTYPE HTML>
 
 <html>
-	<head>
-		<meta charset="UTF-8"/>
-		<title>Paxosim</title>
-		<link rel="stylesheet" type="text/css" href="./paxosim.css"/>
-		<script type="text/javascript" src="./minheap.js"></script>
-		<script type="text/javascript" src="./framework.js"></script>
+    <head>
+        <meta charset="UTF-8"/>
+        <title>Paxosim</title>
+        <link rel="stylesheet" type="text/css" href="./paxosim.css"/>
+        <script type="text/javascript" src="./minheap.js"></script>
+        <script type="text/javascript" src="./framework.js"></script>
         <script type="text/javascript" src="./paxos.js"></script>
         <script type="text/javascript" src="./ui.js"></script>
-	</head>
+    </head>
 
-	<body>
-		<div id="container">
+    <body>
+        <div id="container">
         <h1>Paxosim</h1>
-        <canvas width="480" height="480" id="canvas"></canvas>
-        <table id="settings"></table>
-		<!--<button id="start">Simulate</button>-->
-		<div id="menu">
-			<div class="panel">
-				<div class="title">
-					Global
-				</div>
-			</div>
-			<div class="panel">
-				<div class="hint"> Node Count: </div>
-				<input type="text" class="inputbox" id="node_count"/>
-				<div class="button" id="restart">Restart</div>
-			</div>
-			<div class="panel">
-				<div class="title">
-					Node <span id="node_id">Not Selected</span>
-				</div>
-			</div>
-			<div class="panel">
-				<div class="hint">Fail Rate:&nbsp;</div>
-				<input type="text" class="inputbox" id="fail_rate"/>
-				<div class="button" id="propose">Propose</div>
-			</div>
-		</div>
-		</div>
+         <div id="canvas_wrapper">
+            <div class="title">
+                    Monitor
+            </div>
+            <canvas width="480" height="480" id="canvas"></canvas>
+        </div>
+        <!--<button id="start">Simulate</button>-->
+        <div id="menu">
+            <div class="panel">
+                <div class="title">
+                    Global
+                </div>
+            </div>
+            <div class="panel">
+                <div class="hint"> Node Count: </div>
+                <input type="text" class="inputbox" id="node_count"/>
+                <div class="button" id="restart">Restart</div>
+            </div>
+            <div class="panel">
+                <div class="title">
+                    Node <span id="node_id">Not Selected</span>
+                </div>
+            </div>
+            <div class="panel">
+                <div class="hint">Fail Rate:&nbsp;</div>
+                <input type="text" class="inputbox" id="fail_rate"/>
+                <div class="button" id="propose">Propose</div>
+            </div>
+        </div>
+        </div>
         <script>
             framework = new Framework(10, 0.1, 50, 500, 1000, 0, 0.3, 40, 80);
-			ui = new UI(framework,
-                    document.getElementById("canvas"),
-                    document.getElementById("menu"),
-					80
-					); 
-			/*isStarted = false;
-            document.getElementById("start").onclick = function () {
-				if (isStarted) {
-					alert("Already Started!");
-					return;
-				}
-				isStarted = true;
-                framework = new Framework(10, 0.1, 50, 500, 1000, 0, 0.3, 40, 80);
-
-                ui = new UI(framework,
-                    document.getElementById("canvas"),
-                    document.getElementById("menu"),
-					80
-					);
-                ui.run();
-            };*/
+            ui = new UI(framework,
+                document.getElementById("canvas"),
+                document.getElementById("menu"),
+                80
+            ); 
         </script>
-	</body>
+    </body>
 </html>

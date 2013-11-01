@@ -1,116 +1,96 @@
 body { 
-	background-color: #ffffff;
-	font-family: courier;
+    background-color: #ffffff;
+    font-family: courier;
 }
 
 /*div {
-	padding: 1px;
-	margin: 1px;
-	border: 1px solid black;
+    padding: 1px;
+    margin: 1px;
+    border: 1px solid black;
 }*/
 
 #container { 
-	width: 860px;
-	margin: 0 auto;
-	overflow: hidden;
-	background-color: white;
+    width: 860px;
+    margin: 0 auto;
+    background-color: white;
 }
 
 #menu {
-	width: 40%;
-	overflow: hidden;
-	float: right;
-	background-color: white;
+    width: 40%;
+    overflow: hidden;
+    float: right;
+    background-color: white;
 }
 
 #node_id {
-	color: #008;
+    color: #008;
 }
 
 .title {
-	display: block;
-	font-weight: bold;
-	margin-left: 5px;
-	padding-left: 5px;
-	background-color: #ddf;
+    display: block;
+    font-weight: bold;
+    padding-left: 5px;
+    background-color: #ddf;
 }
 
 .panel {
-	background-color: #eef;
-	border: 0px;
-	margin: 4px 2px;
-	padding: 4px 2px;
+    background-color: #eef;
+    border: 0px;
+    margin: 4px 2px;
+    padding: 4px 2px;
 }
 
 .hint { 
-	display: inline-block;
-	border: 0;
-	margin: 0 0;
+    display: inline-block;
+    border: 0;
+    margin: 0 0;
 }
 
 #canvas { 
-	border: 5px solid #eef;
-	float: left;
+}
+
+#canvas_wrapper {
+    border: 5px solid #eef;
+    overflow: hidden;
+    float: left;
 }
 
 .button {
-	display: inline-block;
-	margin: 0 0;
-	padding: 0 4px;
-	width: 80px;
-	height: 30px;
-	border: 2px solid white;
-	background-color: white;
-	border-color: black;
-	line-height: 30px;
-	text-align: center;
-	cursor: pointer;
-	font-weight: bold;
+    display: inline-block;
+    margin: 0 0;
+    padding: 0 4px;
+    width: 80px;
+    height: 30px;
+    border: 2px solid white;
+    background-color: white;
+    border-color: black;
+    line-height: 30px;
+    text-align: center;
+    cursor: pointer;
+    font-weight: bold;
 }
 .button:hover {
-	background-color: #aac;
-	border-color: white;
-	color: white;
+    background-color: #aac;
+    border-color: white;
+    color: white;
 }
 
 .button.disabled { 
-	color: gray;
-	border-color:gray;
+    color: gray;
+    border-color:gray;
 }
 .button.disabled:hover {
-	background-color: white;
-	border-color: gray;
-	color: gray;
+    background-color: white;
+    border-color: gray;
+    color: gray;
 }
 
 .inputbox {
-	margin: 0 0;
-	padding: 0 5px; 
-	border:2px solid #456879;
-	border-radius:10px;
-	height: 25px;
-	width: 100px;
-	display: inline-block;
+    margin: 0 0;
+    padding: 0 5px; 
+    border:2px solid #456879;
+    border-radius:10px;
+    height: 25px;
+    width: 100px;
+    display: inline-block;
 }
-
-/*body {
-	background-color: #eee;
-}
-
-div {
-	margin: 20px;
-	font-family: Courier, Calibri;
-	background-color: white;
-}
-
-#settings {
-	overflow: hidden;
-	width: 40%;
-}
-
-
-
-#canvas {
-	border: 1px solid black;
-	float: left;
-}*/

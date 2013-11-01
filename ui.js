@@ -7,7 +7,6 @@
     var rad = node.getId() / node.countNodes() * Math.PI * 2;
     this.x = cvs.width / 2 + (cvs.width - 30) / 2 * Math.sin(rad);
     this.y = cvs.height / 2 - (cvs.height - 30) / 2 * Math.cos(rad);
-	console.log(this.x - this.halfLength, this.y - this.halfLength, this.x - this.halfLength + 20, this.y - this.halfLength + 20);
 }
 
 NodeElement.prototype.draw = function () {
@@ -151,6 +150,7 @@ Input = function (elemt, ui, setObjValue, getObjValue, min, max, isInt, f) {
     this.min = min;
     this.max = max;
     this.isInt = isInt;
+    this.enabled = false;
 
     var v;
     elemt.value = (v = this.getObjValue()) != null ? v : "N/A";
@@ -189,7 +189,7 @@ Input.prototype.onChange = function () {
 Button = function (elemt, ui, onclick, isEnable) {
     this.elemt = elemt;
     this.ui = ui;
-	this.isEnable = isEnable ? isEnable : null;
+    this.isEnable = isEnable ? isEnable : null;
     this.enabled = true;
     var self = this;
     elemt.onclick = function(e) { if (self.enable) onclick(e); };
@@ -204,7 +204,7 @@ Button.prototype.enable = function() {
 }
 
 Button.prototype.onUpdate = function() {
-	(this.isEnable != null) &&  (this.isEnable() ? this.enable() : this.disable());
+    (this.isEnable != null) &&  (this.isEnable() ? this.enable() : this.disable());
 }
 
 UI = function (framework, canvas, settingsTable) {
@@ -228,7 +228,6 @@ UI.removeClass = function(elemt, c) {
 }
 
 UI.prototype.findElementAt = function (x, y) {
-	console.log(x, y);
     for (var i = 0; this.messageElements && i < this.messageElements.length; ++i) {
         if (this.messageElements[i].isMouseIn(x, y)) {
             return this.messageElements[i];
@@ -272,7 +271,6 @@ UI.prototype.generateSettledElements = function () {
     this.nodeElements = [];
     var nodes = this.framework.getNodes();
     for (var i = 0; i < nodes.length; ++i) {
-		console.log(i);
         this.nodeElements.push(new NodeElement(this.canvas, nodes[i], this));
     }
 
@@ -325,7 +323,7 @@ UI.prototype.run = function () {
 
 UI.prototype.initSettingsTable = function() {
     var self = this;
-	this.widgets = [
+    this.widgets = [
     new Button(document.getElementById("restart"), this, function() {
         if (!self._isStarted) {
             self._isStarted = true;
@@ -353,7 +351,7 @@ UI.prototype.initSettingsTable = function() {
             return null;
         }, 
         2, 100, true
-	),
+    ),
 
     new Input(document.getElementById("fail_rate"), this,
         function (value) {
@@ -369,27 +367,27 @@ UI.prototype.initSettingsTable = function() {
             return null;
         },
         0, 1, false
-	),
+    ),
 
     new Button(document.getElementById("propose"), this, 
-		function() {
-        	if (self._currentNode) {
-            	self._currentNode.request();
-        	}
-    	}, 
-		function() {
-			return self._currentNode != null;
-		}
-	)];
+        function() {
+            if (self._currentNode) {
+                self._currentNode.request();
+            }
+        }, 
+        function() {
+            return self._currentNode != null;
+        }
+    )];
 }
 
 UI.prototype.updateSettingsTable = function(obj) {
     this._currentNode = obj;
-	this.onUpdate();
+    this.onUpdate();
 }
 
 UI.prototype.onUpdate = function() {
-	for (var i = 0; i < this.widgets.length; i++) {
-		this.widgets[i].onUpdate();
-	}
+    for (var i = 0; i < this.widgets.length; i++) {
+        this.widgets[i].onUpdate();
+    }
 }
