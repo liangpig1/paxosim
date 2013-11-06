@@ -28,8 +28,42 @@
                 </div>
             </div>
             <div class="panel">
-                <div class="hint"> Node Count: </div>
-                <input type="text" class="inputbox" id="node_count"/>
+				<div class="slot">
+                	<div class="hint"> Node Count: </div>
+                	<input type="text" class="inputbox" id="node_count"/>
+				</div>
+				<div class="slot">
+                	<div class="hint"> Fail Rate: </div>
+                	<input type="text" class="inputbox" id="global_fail_rate"/>
+				</div>
+				<div class="slot">
+                	<div class="hint"> Average Fail Time: </div>
+                	<input type="text" class="inputbox" id="avg_fail_time"/>
+				</div>
+				<div class="slot">
+                	<div class="hint"> Propose Timeout: </div>
+                	<input type="text" class="inputbox" id="propose_timeout"/>
+				</div>
+				<div class="slot">
+                	<div class="hint"> Listen Timeout: </div>
+                	<input type="text" class="inputbox" id="listen_timeout"/>
+				</div>
+				<div class="slot">
+                	<div class="hint"> Duplicate Rate: </div>
+                	<input type="text" class="inputbox" id="dup_rate"/>
+				</div>
+				<div class="slot">
+                	<div class="hint"> Loss Rate: </div>
+                	<input type="text" class="inputbox" id="loss_rate"/>
+				</div>
+				<div class="slot">
+                	<div class="hint"> Connection Min Time: </div>
+                	<input type="text" class="inputbox" id="conn_min_time"/>
+				</div>
+				<div class="slot">
+                	<div class="hint"> Connection Max Time: </div>
+                	<input type="text" class="inputbox" id="conn_max_time"/>
+				</div>
                 <div class="button" id="restart">Restart</div>
             </div>
             <div class="panel">
@@ -38,9 +72,11 @@
                 </div>
             </div>
             <div class="panel">
-                <div class="hint">Fail Rate:&nbsp;</div>
-                <input type="text" class="inputbox" id="fail_rate"/>
-                <div class="button" id="propose">Propose</div>
+				<div class="slot">
+                	<div class="hint" id="hint_fail_rate">Fail Rate:&nbsp;</div>
+                	<input type="text" class="inputbox" id="fail_rate"/>
+                	<div class="button" id="propose">Propose</div>
+				</div>
             </div>
         </div>
         </div>

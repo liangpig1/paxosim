@@ -38,21 +38,31 @@ body {
     border: 0px;
     margin: 4px 2px;
     padding: 4px 2px;
+	overflow: hidden;
 }
 
 .hint { 
     display: inline-block;
     border: 0;
     margin: 0 0;
+	width: 212px;
+	text-align: right;
+}
+
+.hint#hint_fail_rate { 
+    display: inline-block;
+    border: 0;
+    margin: 0 0;
+	width: 110px;
 }
 
 #canvas { 
     -moz-user-select: none;
     -webkit-user-select: none;
-	-webkit-touch-callout: none;
-	-khtml-user-select: none;
-	-ms-user-select: none;
-	user-select: none;
+    -webkit-touch-callout: none;
+    -khtml-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 
 #canvas_wrapper {
@@ -92,8 +102,13 @@ body {
     color: gray;
 }
 
+.button#restart {
+	float: right;
+	margin-top: 5px;
+}
+
 .inputbox {
-    margin: 0 0;
+    margin: 1px 0;
     padding: 0 5px; 
     border:2px solid #456879;
     border-radius:10px;

@@ -248,13 +248,16 @@ UI = function (framework, canvas, settingsTable) {
     this.framework = framework;
     this.canvas = canvas;
     this.settingsTable = settingsTable;
-    this._isStarted = false;
     this._currentNode = null;
 
     var self = this;
     this.canvas.onmousedown = function (e) { self.onCanvasClick(e); };
     this.canvas.oncontextmenu = function (e) { e.preventDefault(); e.stopPropagation(); };
     this.initSettingsTable();
+
+	this._isStarted = true;
+    this.framework.reset();
+    this.run();
 }
 
 // static function
@@ -364,6 +367,26 @@ UI.prototype.run = function () {
 
 UI.prototype.initSettingsTable = function() {
     var self = this;
+    generateFunctionPackage = function(str) {
+        return {
+            setObjValue: function(value) {
+                if (!isNumber(value))
+                    return false;
+                if (self.framework != null && self.framework[str] != null) {
+                    self.framework[str] = value;
+                    return true;
+                }
+				alert(str);
+                return false;
+            },
+            getObjValue: function(value) {
+                if (self.framework != null)
+                    return self.framework[str];
+				alert(str);
+                return null;
+            }
+        };
+    }
     this.widgets = [
     new Button(document.getElementById("restart"), this, function() {
         if (!self._isStarted) {
@@ -378,24 +401,15 @@ UI.prototype.initSettingsTable = function() {
         }
     }),
 
-    new Input(document.getElementById("node_count"), this, 2, 100, true, 
-        {
-            setObjValue: function (value) {
-                if (!isNumber(value))
-                    return false;
-                if (self.framework != null && self.framework.nodeCount != null) { 
-                    self.framework.nodeCount = value;
-                    return true; 
-                } 
-                return false; 
-            }, 
-            getObjValue: function () { 
-                if (self.framework != null)
-                    return self.framework.nodeCount;
-                return null;
-            }, 
-        }
-    ),
+    new Input(document.getElementById("node_count"), this, 2, 100, true, generateFunctionPackage("nodeCount")),
+    new Input(document.getElementById("global_fail_rate"), this, 0, 1, false, generateFunctionPackage("nodeFailRate")),
+    new Input(document.getElementById("avg_fail_time"), this, 0, 10000, true, generateFunctionPackage("nodeAverageFailTime")),
+    new Input(document.getElementById("propose_timeout"), this, 0, 10000, true, generateFunctionPackage("paxosProposalTimeout")),
+    new Input(document.getElementById("listen_timeout"), this, 0, 10000, true, generateFunctionPackage("paxosListenTimeout")),
+    new Input(document.getElementById("dup_rate"), this, 0, 1, false, generateFunctionPackage("connectionDupRate")),
+    new Input(document.getElementById("loss_rate"), this, 0, 1, false, generateFunctionPackage("connectionLossRate")),
+    new Input(document.getElementById("conn_min_time"), this, 0, 100, true, generateFunctionPackage("connectionMinTime")),
+    new Input(document.getElementById("conn_max_time"), this, 0, 100, true, generateFunctionPackage("connectionMaxTime")),
 
     new Input(document.getElementById("fail_rate"), this, 0, 1, false,
         {
