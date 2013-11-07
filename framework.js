@@ -232,10 +232,21 @@ Framework.prototype.tick = function () {
         this._nodes[msg.to].deliverMessage(msg);
     }
 
-    for (j = 0; j < this._nodes.length; j++) {
-        this._nodes[j].tick();
+    for (var i = 0; i < this._nodes.length; i++) {
+        this._nodes[i].tick();
     }
     ++this._time;
+}
+
+Framework.prototype.isAnyPaxosAccepted = function () {
+    for (var i = 0; i < this._nodes.length; i++) {
+        var paxos = this._nodes[i].paxos;
+        var state = paxos.getState();
+        if (state.indexOf("accepted") >= 0) {
+            return true;
+        }
+    }
+    return false;
 }
 
 Framework.prototype.run = function () {

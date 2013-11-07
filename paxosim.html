@@ -81,12 +81,29 @@
         </div>
         </div>
         <script>
-            framework = new Framework(10, 0.1, 50, 500, 1000, 0, 0.3, 40, 80);
+            //tests = 100;
+            //sumRound = 0;
+            //X = 0.3;
+            //for (var t = 0; t < tests; ++t) {
+            //    framework = new Framework(100, X, 50, 100, 1000, X, X, 5, 20);
+            //    framework.reset();
+            //    for (var j = 0; j < 100; ++j) {
+            //        framework.getNodes()[j].request();
+            //    }
+            //    while (!framework.isAnyPaxosAccepted() && framework._time <= 10000) {
+            //        framework.tick();
+            //    }
+            //    if (framework._time > 10000)
+            //        break;
+            //    round = Math.ceil(framework._time / framework.paxosProposalTimeout);
+            //    sumRound += round;
+            //}
+            //alert(sumRound / tests);
+
+            framework = new Framework(10, 0.2, 200, 250, 1000, 0, 0, 40, 80);
             ui = new UI(framework,
                 document.getElementById("canvas"),
-                document.getElementById("menu"),
-                80
-            ); 
+                document.getElementById("menu"));
         </script>
     </body>
 </html>

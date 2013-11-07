@@ -97,14 +97,25 @@ Paxos.prototype._onRequest = function () {
 Paxos.prototype._onPrepare = function (msg) {
     this._log(msg.toString());
 
+    if (this._isProposer) {
+        if (msg.detail > this._proposalNumber) {
+            // Somebody's proposing with a higher number, stop my proposal
+            this._isProposer = false;
+        } else {
+            // I've proposed another proposal with a higher number, so ignore
+            return;
+        }
+    }
+
     if (msg.detail >= this._prepareNumber) {
+        // The prepare has the highest number, promise it
         var newMsg = new PaxosMessage(this._node.getId(), "promise",
             [msg.detail, this._highestAcceptedNumber, this._acceptedValue]);
         this._node.send(msg.from, newMsg);
         this._prepareNumber = msg.detail;
         this._save();
     } else {
-        // TODO: optimize performance
+        // I've already promised somebody else with a higher number, so ignore
     }
 }
 
@@ -116,6 +127,18 @@ Paxos.prototype._onPromise = function (msg) {
     }
 
     if (msg.detail[0] /*number*/ == this._proposalNumber) {
+        // in case of receiving duplicated messages from same node
+        var found = false;
+        for (var i = 0; i < this._promisedNodes.length; ++i) {
+            if (this._promisedNodes[i] == msg.from) {
+                found = true;
+                break;
+            }
+        }
+        if (found) {
+            return;
+        }
+
         this._promisedNodes.push(msg.from);
 
         if (msg.detail[1] > this._highestPromiseNumber) {
@@ -129,7 +152,7 @@ Paxos.prototype._onPromise = function (msg) {
             if (this._highestPromiseValue) {
                 this._proposingValue = this._highestPromiseValue;
             } else if (!this._proposingValue) {
-                this._proposingValue = Math.round(Math.random() * 100);
+                this._proposingValue = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"[Math.floor(Math.random() * 26)];
             }
             this._save();
 
@@ -177,7 +200,16 @@ Paxos.prototype._save = function () {
 }
 
 Paxos.prototype.getState = function () {
-    return "stub";
+    if (this._acceptedValue) {
+        return "accepted<" + this._acceptedValue + ">";
+    } else if (this._isProposer) {
+        return "proposed<" + this._proposalNumber +
+            ", " + this._receivedPromise +
+            "/" + this._node.countNodes() +
+            ", " + (this._proposeTime + this._node.paxosProposalTimeout) + ">";
+    } else {
+        return "promised<" + this._prepareNumber + ">";
+    }
 }
 
 PaxosMessage = function (from, type, detail) {

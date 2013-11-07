@@ -10,8 +10,8 @@ NodeElement = function (cvs, node, ui) {
     this.isSelected = false;
 
     var rad = node.getId() / node.countNodes() * Math.PI * 2;
-    this.x = cvs.width / 2 + (cvs.width - 30) / 2 * Math.sin(rad);
-    this.y = cvs.height / 2 - (cvs.height - 30) / 2 * Math.cos(rad);
+    this.x = cvs.width / 2 + (cvs.width - 80) / 2 * Math.sin(rad);
+    this.y = cvs.height / 2 - (cvs.height - 80) / 2 * Math.cos(rad);
 }
 
 NodeElement.prototype.draw = function () {
@@ -21,19 +21,37 @@ NodeElement.prototype.draw = function () {
 
     if (this.isSelected) {
         ctx.save();
-        ctx.strokeStyle = "blue";
+        ctx.strokeStyle = "gray";
         ctx.strokeRect(this.x - this.halfLength - 1, this.y - this.halfLength - 1, 22, 22);
         ctx.restore();
     }
 
     if (this.node.isWorking()) {
-        ctx.strokeStyle = ctx.fillStyle = "blue";
+        var state = this.node.paxos.getState();
+        var index = state.indexOf("<");
+        var stateTag = state.substr(0, index);
+        var stateDetail = state.substr(index);
+
+        if (stateTag == "proposed") {
+            ctx.strokeStyle = ctx.fillStyle = "#007700";
+        } else if (stateTag == "accepted") {
+            ctx.strokeStyle = ctx.fillStyle = "#FF00FF";
+        } else {
+            ctx.strokeStyle = ctx.fillStyle = "#0000FF";
+        }
+
         ctx.strokeRect(this.x - this.halfLength, this.y - this.halfLength, 20, 20);
+        ctx.font = "bold 8pt 'Courier'";
         ctx.fillText(this.node.getId(), this.x, this.y);
+        ctx.font = "10pt 'Courier'";
+        
+        ctx.fillText(stateTag, this.x, this.y + this.halfLength * 2);
+        ctx.fillText(stateDetail, this.x, this.y + this.halfLength * 2 + 12);
     } else {
         ctx.fillStyle = "red";
         ctx.fillRect(this.x - this.halfLength, this.y - this.halfLength, 20, 20);
         ctx.fillStyle = "white";
+        ctx.font = "bold 8pt 'Courier'";
         ctx.fillText(this.node.getId(), this.x, this.y);
     }
 }
@@ -244,10 +262,9 @@ Button.prototype.onUpdate = function() {
     (this.isEnable != null) &&  (this.isEnable() ? this.enable() : this.disable());
 }
 
-UI = function (framework, canvas, settingsTable) {
+UI = function (framework, canvas) {
     this.framework = framework;
     this.canvas = canvas;
-    this.settingsTable = settingsTable;
     this._currentNode = null;
 
     var self = this;
@@ -352,6 +369,11 @@ UI.prototype.draw = function () {
     for (var i = 0; i < this.messageElements.length; ++i) {
         this.messageElements[i].draw();
     }
+
+    ctx.textAlign = "left";
+    ctx.fillStyle = "black";
+    ctx.font = "bold 10pt 'Courier'";
+    ctx.fillText("time: " + this.framework._time, 5, 10);
 }
 
 UI.prototype.run = function () {
