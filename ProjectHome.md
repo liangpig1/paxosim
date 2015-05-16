@@ -1,0 +1,1 @@
+A simple simulator of Paxos algorithm
